@@ -6,15 +6,22 @@
 	let pipelines: Pipeline[] = [];
 
 	onMount(async () => {
-		const res = await fetch(import.meta.env.VITE_PIPELINE_ENDPOINT, {
-			method: 'GET',
-			// mode: 'cors',
-			headers: {
-				Authorization: 'Bearer ' + accessToken
-			}
-		});
-		const pRes: ApiResponse<Pipeline> = await res.json();
-		pipelines = pRes.payload.items;
+		try {
+			const headers = {
+				'Content-Type': 'application/json',
+				Authorization: 'Bearer ' + $accessToken
+			};
+		
+			const res = await fetch(import.meta.env.VITE_API_ENDPOINT + '/pipelines', {
+				method: 'GET',
+				mode: 'cors',
+				headers: headers
+			});
+			const pRes: ApiResponse<Pipeline> = await res.json();
+			pipelines = pRes.payload.items;
+		} catch (e) {
+			console.error(e);
+		}
 	});
 
 	function runPipeline(pl: Pipeline) {
