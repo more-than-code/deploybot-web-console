@@ -8,13 +8,11 @@
 	onMount(async () => {
 		try {
 			const headers = {
-				'Content-Type': 'application/json',
-				Authorization: 'Bearer ' + $accessToken
+				Authorization: 'Bearer ' + $accessToken,
 			};
 		
-			const res = await fetch(import.meta.env.VITE_API_ENDPOINT + '/pipelines', {
+			const res = await fetch('/api/pipelines', {
 				method: 'GET',
-				mode: 'cors',
 				headers: headers
 			});
 			const pRes: ApiResponse<Pipeline> = await res.json();

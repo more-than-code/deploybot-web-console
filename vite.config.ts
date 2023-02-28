@@ -8,7 +8,7 @@ const config: UserConfig = {
 	},
 	server: {
 		proxy: {
-			// '/api': 'https://pipeline.portkey.io',
+			'/api': 'https://console.deploybot.dev',
 		}
 	}
 };
