@@ -8,7 +8,12 @@ const config: UserConfig = {
 	},
 	server: {
 		proxy: {
-			'/api': 'https://console.deploybot.dev',
+			// '/api': 'https://console.deploybot.dev',
+			'/api': {
+				target: 'http://localhost:8090/',
+				changeOrigin: true,
+				rewrite: path => path.replace(/^\/api/, '')
+			}
 		}
 	}
 };

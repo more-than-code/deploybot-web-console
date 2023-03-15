@@ -1,26 +1,10 @@
 <script lang="ts">
-	import type { ApiResponse, Pipeline } from 'models/pipeline';
-	import accessToken from '$lib/shared/stores/accessToken';
-	import { onMount } from 'svelte';
+	import type { PageData } from './$types';
+	import type { Pipeline } from 'models/pipeline';
 
-	let pipelines: Pipeline[] = [];
+	export let data: PageData;
 
-	onMount(async () => {
-		try {
-			const headers = {
-				Authorization: 'Bearer ' + $accessToken,
-			};
-		
-			const res = await fetch('/api/pipelines', {
-				method: 'GET',
-				headers: headers
-			});
-			const pRes: ApiResponse<Pipeline> = await res.json();
-			pipelines = pRes.payload.items;
-		} catch (e) {
-			console.error(e);
-		}
-	});
+	let pipelines = data.pipelines;
 
 	function runPipeline(pl: Pipeline) {
 		if (pl.tasks.length === 0) {
