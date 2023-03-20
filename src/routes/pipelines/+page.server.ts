@@ -1,11 +1,12 @@
-import type { ApiResponse, Pipeline } from 'models/pipeline';
+import type {  Pipeline } from 'models/pipeline';
+import type { ApiResponse } from 'models/response';
 import type { PageServerLoad } from './$types';
 
-export const load = (async ({ fetch }) => {
+export const load = (async ({ fetch, url }) => {
 	let pipelines: Pipeline[] = [];
 
 	try {
-		const res = await fetch('/api/pipelines', {
+		const res = await fetch('/api/pipelines?pid='+url.searchParams.get("pid"), {
 			method: 'GET'
 		});
 
