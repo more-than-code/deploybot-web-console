@@ -78,9 +78,3 @@ export const actions = {
 		}
 	}
 } satisfies Actions;
-
-export const load = (async () => {
-	return {
-		googleClientId: import.meta.env.VITE_GOOGLE_CLIENT_ID
-	};
-}) satisfies PageServerLoad;

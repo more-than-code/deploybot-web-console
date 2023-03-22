@@ -2,8 +2,8 @@
 	import { onMount } from 'svelte';
 	import { SubmitViaForm } from '$lib/shared/utils/utils';
 	import type { PageData } from './$types';
+	import { VITE_GOOGLE_CLIENT_ID } from '$env/static/private';
 
-	export let data: PageData;
 
 	let gLoginBtn;
 
@@ -13,7 +13,7 @@
 		}
 
 		window.google.accounts.id.initialize({
-			client_id: data.googleClientId,
+			client_id: VITE_GOOGLE_CLIENT_ID,
 			callback: handleCredentialResponse
 		});
 		window.google.accounts.id.renderButton(gLoginBtn, {
