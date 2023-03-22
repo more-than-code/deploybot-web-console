@@ -1,7 +1,6 @@
 import { fail, redirect } from '@sveltejs/kit';
 import type { AuthenticationResponse } from 'models/user';
-import type { Action, Actions, PageServerLoad } from './$types';
-import { VITE_GOOGLE_CLIENT_ID } from '$env/static/private';
+import type { Actions } from './$types';
 
 export const actions = {
 	signin: async ({ cookies, request, fetch }) => {
@@ -79,9 +78,3 @@ export const actions = {
 		}
 	}
 } satisfies Actions;
-
-export const load = (async () => {
-	return {
-		googleClientId: VITE_GOOGLE_CLIENT_ID
-	};
-}) satisfies PageServerLoad;

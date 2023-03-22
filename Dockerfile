@@ -1,6 +1,8 @@
 FROM node:19-alpine AS build
 WORKDIR /app
 
+ARG VITE_PIPELINE_ENDPOINT
+
 COPY . .
 
 RUN \
