@@ -3,7 +3,7 @@ import type { AuthenticationResponse } from 'models/user';
 import type { Action, Actions, PageServerLoad } from './$types';
 
 export const actions = {
-	default: async ({ cookies, request, fetch }) => {
+	signin: async ({ cookies, request, fetch }) => {
 		const data = await request.formData();
 		const email = data.get('email');
 		const password = data.get('password');
@@ -43,7 +43,38 @@ export const actions = {
 				maxAge: 60 * 60 * 24 * 30
 			});
 
-			throw redirect(302, '/pipelines');
+			throw redirect(302, '/projects');
+		}
+	},
+	googleSignin: async ({ cookies, request, fetch }) => {
+		const data =await request.formData()
+		const idToken = data.get("idToken")
+
+		const res = await fetch('/api/authenticateSso', {
+			credentials: 'same-origin',
+			method: 'POST',
+			mode: 'cors',
+			body: JSON.stringify({
+				idToken
+			})
+		});
+
+    if (res.status != 200) {
+      return fail(400, { invalid: true });
+    }
+
+		const authRes: AuthenticationResponse = await res.json();
+
+		if (authRes.code === 0 && authRes.payload) {
+			cookies.set('accessToken', authRes.payload.accessToken, {
+				path: '/',
+				httpOnly: true,
+				sameSite: 'strict',
+				secure: process.env.NODE_ENV === 'production',
+				maxAge: 60 * 60 * 24 * 30
+			});
+
+			throw redirect(302, '/projects');
 		}
 	}
 } satisfies Actions;

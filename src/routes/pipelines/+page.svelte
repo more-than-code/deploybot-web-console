@@ -4,7 +4,7 @@
 
 	export let data: PageData;
 
-	let pipelines = data.pipelines;
+	let pipelines = data.pipelines ?? [];
 
 	function runPipeline(pl: Pipeline) {
 		if (pl.tasks.length === 0) {
