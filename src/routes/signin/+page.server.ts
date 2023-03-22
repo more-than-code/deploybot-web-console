@@ -1,6 +1,23 @@
-import { fail, redirect } from '@sveltejs/kit';
+import { fail, redirect, type Cookies } from '@sveltejs/kit';
 import type { AuthenticationResponse } from 'models/user';
 import type { Actions } from './$types';
+
+function setCookies(cookies: Cookies, accessToken: string) {
+	cookies.set('accessToken', accessToken, {
+		// send cookie for every page
+		path: '/',
+		// server side only cookie so you can't use `document.cookie`
+		httpOnly: true,
+		// only requests from same site can send cookies
+		// https://developer.mozilla.org/en-US/docs/Glossary/CSRF
+		sameSite: 'strict',
+		// only sent over HTTPS in production
+		secure: process.env.NODE_ENV === 'production',
+		// set cookie to expire after a month
+		maxAge: 60 * 60 * 24 * 30
+	});
+
+}
 
 export const actions = {
 	signin: async ({ cookies, request, fetch }) => {
@@ -29,21 +46,8 @@ export const actions = {
 		const authRes: AuthenticationResponse = await res.json();
 
 		if (authRes.code === 0 && authRes.payload) {
-			cookies.set('accessToken', authRes.payload.accessToken, {
-				// send cookie for every page
-				path: '/',
-				// server side only cookie so you can't use `document.cookie`
-				httpOnly: true,
-				// only requests from same site can send cookies
-				// https://developer.mozilla.org/en-US/docs/Glossary/CSRF
-				sameSite: 'strict',
-				// only sent over HTTPS in production
-				secure: process.env.NODE_ENV === 'production',
-				// set cookie to expire after a month
-				maxAge: 60 * 60 * 24 * 30
-			});
-
-			throw redirect(302, '/projects');
+			setCookies(cookies, authRes.payload.accessToken)
+			throw redirect(302, '/');
 		}
 	},
 	googleSignin: async ({ cookies, request, fetch }) => {
@@ -66,15 +70,8 @@ export const actions = {
 		const authRes: AuthenticationResponse = await res.json();
 
 		if (authRes.code === 0 && authRes.payload) {
-			cookies.set('accessToken', authRes.payload.accessToken, {
-				path: '/',
-				httpOnly: true,
-				sameSite: 'strict',
-				secure: process.env.NODE_ENV === 'production',
-				maxAge: 60 * 60 * 24 * 30
-			});
-
-			throw redirect(302, '/projects');
+			setCookies(cookies, authRes.payload.accessToken)
+			throw redirect(302, '/');
 		}
 	}
 } satisfies Actions;
