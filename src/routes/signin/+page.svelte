@@ -3,6 +3,8 @@
 	import { SubmitViaForm } from '$lib/shared/utils/utils';
 
 	let gLoginBtn;
+	let email = '';
+	let password = '';
 
 	onMount(async () => {
 		addGoogleSigninButton();
@@ -40,15 +42,15 @@
 	<form method="POST" action="?/signin">
 		<label>
 			Email
-			<input placeholder="" name="email" type="email" />
+			<input placeholder="" name="email" type="email" bind:value={email} />
 		</label>
 		<div class="padding5" />
 		<label>
 			Password
-			<input placeholder="" name="password" type="password" />
+			<input placeholder="" name="password" type="password" bind:value={password} />
 		</label>
 		<div class="padding10" />
-		<button class="loginBtn">Sign in</button>
+		<button class="loginBtn" disabled={ email.length === 0 || password.length === 0}>Sign in</button>
 	</form>
 	<div class="padding20" />
 	<div class="gLoginBtn" id="gLoginBtn" bind:this={gLoginBtn} />
@@ -102,6 +104,11 @@
 		height: 40px;
 		border-radius: 4px;
 		color: #fff;
+	}
+
+	.loginBtn[disabled] {
+		background-color: #aaa;
+		cursor: not-allowed;
 	}
 
 	.gLoginBtn {
