@@ -14,6 +14,7 @@
 	}
 
 	function addGoogleSigninButton() {
+		console.log("addGoogleSigninButton ===== ",  import.meta.env.VITE_GOOGLE_CLIENT_ID)
 		jsLoaded = true;
 
 		window.google.accounts.id.initialize({
