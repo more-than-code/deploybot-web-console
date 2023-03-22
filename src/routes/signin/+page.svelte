@@ -13,8 +13,6 @@
 	}
 
 	function addGoogleSigninButton() {
-		console.log('addGoogleSigninButton ===== ', import.meta.env.VITE_GOOGLE_CLIENT_ID);
-
 		if (window.google) {
 			window.google.accounts.id.initialize({
 				client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID,
