@@ -22,9 +22,9 @@ export const actions = {
 			})
 		});
 
-    if (res.status != 200) {
-      return fail(400, { invalid: true });
-    }
+		if (res.status != 200) {
+			return fail(400, { invalid: true });
+		}
 
 		const authRes: AuthenticationResponse = await res.json();
 
@@ -47,8 +47,8 @@ export const actions = {
 		}
 	},
 	googleSignin: async ({ cookies, request, fetch }) => {
-		const data =await request.formData()
-		const idToken = data.get("idToken")
+		const data = await request.formData();
+		const idToken = data.get('idToken');
 
 		const res = await fetch('/api/authenticateSso', {
 			credentials: 'same-origin',
@@ -59,9 +59,9 @@ export const actions = {
 			})
 		});
 
-    if (res.status != 200) {
-      return fail(400, { invalid: true });
-    }
+		if (res.status != 200) {
+			return fail(400, { invalid: true });
+		}
 
 		const authRes: AuthenticationResponse = await res.json();
 
@@ -78,3 +78,9 @@ export const actions = {
 		}
 	}
 } satisfies Actions;
+
+export const load = (async () => {
+	return {
+		googleClientId: import.meta.env.VITE_GOOGLE_CLIENT_ID
+	};
+}) satisfies PageServerLoad;

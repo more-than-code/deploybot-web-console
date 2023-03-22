@@ -1,22 +1,26 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { SubmitViaForm } from '$lib/shared/utils/utils';
+	import type { PageData } from './$types';
+
+	export let data: PageData;
 
 	let gLoginBtn;
 
 	onMount(async () => {
-		async function handleCredentialResponse(response) {	
-			SubmitViaForm('?/googleSignin', "POST", {"idToken": response.credential})
+		async function handleCredentialResponse(response) {
+			SubmitViaForm('?/googleSignin', 'POST', { idToken: response.credential });
 		}
 
 		window.google.accounts.id.initialize({
-			client_id:  import.meta.env.VITE_GOOGLE_CLIENT_ID,
+			client_id: data.googleClientId,
 			callback: handleCredentialResponse
 		});
-		window.google.accounts.id.renderButton(
-			gLoginBtn,
-			{ type: 'standard', theme: 'outline', size: 'large' } 
-		);
+		window.google.accounts.id.renderButton(gLoginBtn, {
+			type: 'standard',
+			theme: 'outline',
+			size: 'large'
+		});
 	});
 </script>
 
