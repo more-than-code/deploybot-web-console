@@ -3,10 +3,9 @@
 	import { SubmitViaForm } from '$lib/shared/utils/utils';
 
 	let gLoginBtn;
-	let jsLoaded = false;
 
 	onMount(async () => {
-		jsLoaded && addGoogleSigninButton();
+		addGoogleSigninButton();
 	});
 
 	function handleCredentialResponse(response) {
@@ -14,18 +13,19 @@
 	}
 
 	function addGoogleSigninButton() {
-		console.log("addGoogleSigninButton ===== ",  import.meta.env.VITE_GOOGLE_CLIENT_ID)
-		jsLoaded = true;
+		console.log('addGoogleSigninButton ===== ', import.meta.env.VITE_GOOGLE_CLIENT_ID);
 
-		window.google.accounts.id.initialize({
-			client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID,
-			callback: handleCredentialResponse
-		});
-		window.google.accounts.id.renderButton(gLoginBtn, {
-			type: 'standard',
-			theme: 'outline',
-			size: 'large'
-		});
+		if (window.google) {
+			window.google.accounts.id.initialize({
+				client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID,
+				callback: handleCredentialResponse
+			});
+			window.google.accounts.id.renderButton(gLoginBtn, {
+				type: 'standard',
+				theme: 'outline',
+				size: 'large'
+			});
+		}
 	}
 </script>
 
