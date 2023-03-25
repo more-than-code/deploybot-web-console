@@ -1,6 +1,7 @@
 <script lang="ts">
 	import type { PageData } from './$types';
-	import type { Pipeline } from 'models/pipeline';
+	import type { Pipeline, DeployConfig, BuildConfig, Task } from 'models/pipeline';
+	import {  invalidateAll } from '$app/navigation';
 
 	export let data: PageData;
 
@@ -24,7 +25,7 @@
 		pipelineId: string;
 		streamWebhook: string;
 	}) {
-		const response = await fetch(streamWebhook, {
+		const res = await fetch(streamWebhook, {
 			method: 'POST',
 			mode: 'cors',
 			body: JSON.stringify({
@@ -34,9 +35,17 @@
 				}
 			})
 		});
-		const res = await response.json();
 
-		console.log(res);
+		invalidateAll();
+	}
+
+	function logUri(t: Task): string {
+		const name = (t.config as DeployConfig).ServiceName;
+		if (name) {
+			return `${t.streamWebhook}/serviceLogs?name=${name}`;
+		}
+
+		return '';
 	}
 </script>
 
@@ -46,7 +55,7 @@
 		<div>
 			Name: <b>{pl.name}</b> Status: <b>{pl.status}</b>
 			<span style="margin-left: 20px">
-				<button on:click={() => runPipeline(pl)}>RUN</button>
+				<button on:click={() => runPipeline(pl)} disabled={pl.status == 'Busy'}>RUN</button>
 				<button>EDIT</button>
 			</span>
 		</div>
@@ -67,6 +76,7 @@
 						Name: <b>{t.name}</b> Status: <b>{t.status}</b>
 						<span style="margin-left: 20px">
 							<button
+								disabled={t.status == 'InProgress'}
 								on:click={() =>
 									runTask({ taskId: t.id, pipelineId: pl.id, streamWebhook: t.streamWebhook })}
 								>RUN</button
@@ -86,7 +96,7 @@
 							Remarks:
 							<p>{t.remarks}</p>
 						</li>
-						<li>Logs: <a href="#">N/A</a></li>
+						<li>Logs: <a href={logUri(t)}>View</a></li>
 					</ul>
 					<br />
 				{/each}

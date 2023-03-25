@@ -1,4 +1,4 @@
-type BuildConfig = {
+export type BuildConfig = {
 	imageName: string;
 	imageTag: string;
 	dockerfile: string;
@@ -6,7 +6,7 @@ type BuildConfig = {
 	repoName: string;
 };
 
-type DeployConfig = {
+export type DeployConfig = {
 	imageName: string;
 	imageTag: string;
 	ServiceName: string;
@@ -20,10 +20,6 @@ type DeployConfig = {
 	networkName: string;
 };
 
-type RestartConfig = {
-	serviceName: string;
-};
-
 export type Task = {
 	id: string;
 	name: string;
@@ -35,7 +31,7 @@ export type Task = {
 	status: string;
 	upstreamTaskId: string;
 	streamWebhook: string;
-	config: BuildConfig | DeployConfig | RestartConfig;
+	config: BuildConfig | DeployConfig;
 	remarks: string;
 	autoRun: boolean;
 	timeout: number;
@@ -56,4 +52,3 @@ export type Pipeline = {
 	branchWatched: string;
 	autoRun: boolean;
 };
-

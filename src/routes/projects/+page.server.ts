@@ -16,6 +16,4 @@ export const load = (async ({ fetch }) => {
 	} else {
 		console.info(res.status);
 	}
-
-	
 }) satisfies PageServerLoad;

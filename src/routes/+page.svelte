@@ -6,8 +6,8 @@
 	const user = data.user;
 </script>
 
-{#if user}
-<img alt="avatar" src={user?.avatarUrl} />
+{#if user?.avatarUrl}
+<img alt="avatar" src={user.avatarUrl} />
 {/if}
 
 <div>Hello {user?.name ?? "vsitor"}, welcome to DeployBot!</div>
