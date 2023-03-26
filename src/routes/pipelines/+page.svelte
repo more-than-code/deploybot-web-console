@@ -25,7 +25,7 @@
 		pipelineId: string;
 		streamWebhook: string;
 	}) {
-		const res = await fetch(streamWebhook, {
+		await fetch(streamWebhook, {
 			method: 'POST',
 			mode: 'cors',
 			body: JSON.stringify({
