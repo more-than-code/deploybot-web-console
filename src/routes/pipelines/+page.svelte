@@ -1,11 +1,11 @@
 <script lang="ts">
 	import type { PageData } from './$types';
 	import type { Pipeline, DeployConfig, BuildConfig, Task } from 'models/pipeline';
-	import {  invalidateAll } from '$app/navigation';
+	import { invalidateAll } from '$app/navigation';
 
 	export let data: PageData;
 
-	let pipelines = data.pipelines ?? [];
+	$: pipelines = data.pipelines ?? [];
 
 	function runPipeline(pl: Pipeline) {
 		if (pl.tasks.length === 0) {
@@ -36,7 +36,9 @@
 			})
 		});
 
-		invalidateAll();
+		await invalidateAll();
+		console.log('data ==== ', pipelines[0].tasks[0]);
+
 	}
 
 	function logUri(t: Task): string {
@@ -76,7 +78,7 @@
 						Name: <b>{t.name}</b> Status: <b>{t.status}</b>
 						<span style="margin-left: 20px">
 							<button
-								disabled={t.status == 'InProgress'}
+								disabled={t.status === 'InProgress'}
 								on:click={() =>
 									runTask({ taskId: t.id, pipelineId: pl.id, streamWebhook: t.streamWebhook })}
 								>RUN</button
