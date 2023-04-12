@@ -1,7 +1,9 @@
 <script lang="ts">
+	// import "carbon-components-svelte/css/white.css";
 	import type { PageData } from './$types';
 	import type { Pipeline, DeployConfig, BuildConfig, Task } from 'models/pipeline';
 	import { invalidateAll } from '$app/navigation';
+	import { Loading } from 'carbon-components-svelte';
 
 	export let data: PageData;
 
@@ -37,17 +39,6 @@
 		});
 
 		await invalidateAll();
-		console.log('data ==== ', pipelines[0].tasks[0]);
-
-	}
-
-	function logUri(t: Task): string {
-		const name = (t.config as DeployConfig).ServiceName;
-		if (name) {
-			return `${t.streamWebhook}/serviceLogs?name=${name}`;
-		}
-
-		return '';
 	}
 </script>
 
@@ -98,7 +89,7 @@
 							Remarks:
 							<p>{t.remarks}</p>
 						</li>
-						<li>Logs: <a href={logUri(t)}>View</a></li>
+						<li>Logs: <a target="_blank" rel="noreferrer" href={t.logUrl}>View</a></li>
 					</ul>
 					<br />
 				{/each}
@@ -107,3 +98,6 @@
 		<hr />
 	{/each}
 </div>
+
+<style>
+</style>

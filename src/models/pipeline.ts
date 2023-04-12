@@ -9,9 +9,9 @@ export type BuildConfig = {
 export type DeployConfig = {
 	imageName: string;
 	imageTag: string;
-	ServiceName: string;
-	MountSource: string;
-	MountTarget: string;
+	serviceName: string;
+	mountSource: string;
+	mountTarget: string;
 	autoRemove: boolean;
 	env: string[];
 	hostPort: string;
@@ -31,6 +31,7 @@ export type Task = {
 	status: string;
 	upstreamTaskId: string;
 	streamWebhook: string;
+	logUrl: string;
 	config: BuildConfig | DeployConfig;
 	remarks: string;
 	autoRun: boolean;
