@@ -61,40 +61,42 @@
 			<li>Stopped at: {pl.stoppedAt}</li>
 			<li>Arguments: {pl.arguments}</li>
 		</ul>
-		<details>
-			<summary>Tasks</summary>
-			<ol>
-				{#each pl.tasks as t}
-					<li style="margin-bottom:10px">
-						Name: <b>{t.name}</b> Status: <b>{t.status}</b>
-						<span style="margin-left: 20px">
-							<button
-								disabled={t.status === 'InProgress'}
-								on:click={() =>
-									runTask({ taskId: t.id, pipelineId: pl.id, streamWebhook: t.streamWebhook })}
-								>RUN</button
-							>
-							<button>EDIT</button>
-						</span>
-					</li>
-					<ul>
-						<li>ID: {t.id}</li>
-						<li>Upstream task ID: {t.upstreamTaskId}</li>
-						<li>Stream webhook: {t.streamWebhook}</li>
-						<li>Auto run: {t.autoRun}</li>
-						<li>Executed at: {t.executedAt}</li>
-						<li>Stopped at: {t.stoppedAt}</li>
-						<li>Timeout: {t.timeout}</li>
-						<li>
-							Remarks:
-							<p>{t.remarks}</p>
+		{#if pl.tasks?.length > 0}
+			<details>
+				<summary>Tasks</summary>
+				<ol>
+					{#each pl.tasks as t}
+						<li style="margin-bottom:10px">
+							Name: <b>{t.name}</b> Status: <b>{t.status}</b>
+							<span style="margin-left: 20px">
+								<button
+									disabled={t.status === 'InProgress'}
+									on:click={() =>
+										runTask({ taskId: t.id, pipelineId: pl.id, streamWebhook: t.streamWebhook })}
+									>RUN</button
+								>
+								<button>EDIT</button>
+							</span>
 						</li>
-						<li>Logs: <a target="_blank" rel="noreferrer" href={t.logUrl}>View</a></li>
-					</ul>
-					<br />
-				{/each}
-			</ol>
-		</details>
+						<ul>
+							<li>ID: {t.id}</li>
+							<li>Upstream task ID: {t.upstreamTaskId}</li>
+							<li>Stream webhook: {t.streamWebhook}</li>
+							<li>Auto run: {t.autoRun}</li>
+							<li>Executed at: {t.executedAt}</li>
+							<li>Stopped at: {t.stoppedAt}</li>
+							<li>Timeout: {t.timeout}</li>
+							<li>
+								Remarks:
+								<p>{t.remarks}</p>
+							</li>
+							<li>Logs: <a target="_blank" rel="noreferrer" href={t.logUrl}>View</a></li>
+						</ul>
+						<br />
+					{/each}
+				</ol>
+			</details>
+		{/if}
 		<hr />
 	{/each}
 </div>
