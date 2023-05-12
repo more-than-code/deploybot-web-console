@@ -12,10 +12,9 @@
 		<div>
 			Name: <b>{proj.name}</b>
 			<ul>
+				<li>ID: {proj.id}</li>
 				<li>
-					<span style="margin-left: 20px">
-						<a href={'/pipelines?pid=' + proj.id}>View pipelines</a>
-					</span>
+					<a href={'/projects/' + proj.id}>View details</a>
 				</li>
 			</ul>
 		</div>

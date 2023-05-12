@@ -14,4 +14,6 @@
 
 {#if user}
 	<a href="/projects">View projects</a>
+{:else}
+	<a href="/signin">Sign in</a>
 {/if}

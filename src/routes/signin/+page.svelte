@@ -52,7 +52,9 @@
 		<div class="padding10" />
 		<button class="loginBtn" disabled={ email.length === 0 || password.length === 0}>Sign in</button>
 	</form>
-	<div class="padding20" />
+	<div class="padding10" />
+	<span>or</span>
+	<div class="padding10" />
 	<div class="gLoginBtn" id="gLoginBtn" bind:this={gLoginBtn} />
 </div>
 
