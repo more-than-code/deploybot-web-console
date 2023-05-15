@@ -30,7 +30,7 @@
 					</ul>
 				</li>
 				<li>
-					<a href={'/pipelines?pid=' + project.id}>View pipeline</a>
+					<a href={'/pipelines?pid=' + project.id}>View pipelines</a>
 				</li>
 			</ul>
 		</div>

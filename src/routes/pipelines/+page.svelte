@@ -4,6 +4,8 @@
 	import type { Pipeline, DeployConfig, BuildConfig, Task } from 'models/pipeline';
 	import { invalidateAll } from '$app/navigation';
 	import { Loading } from 'carbon-components-svelte';
+	import { json } from '@sveltejs/kit';
+	import { space } from 'svelte/internal';
 
 	export let data: PageData;
 
@@ -91,6 +93,7 @@
 								<p>{t.remarks}</p>
 							</li>
 							<li>Logs: <a target="_blank" rel="noreferrer" href={t.logUrl}>View</a></li>
+							<li>Config: <pre>{JSON.stringify(t.config, null, "\t")}</pre></li>
 						</ul>
 						<br />
 					{/each}
