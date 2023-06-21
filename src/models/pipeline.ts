@@ -48,6 +48,7 @@ export type Pipeline = {
 	scheduledAt: number;
 	status: string;
 	arguments: string[];
+	labels: Map<string, string>;
 	tasks: Task[];
 	repoWatched: string;
 	branchWatched: string;
