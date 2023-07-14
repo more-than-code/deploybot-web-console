@@ -47,7 +47,7 @@ export const actions = {
 
 		if (authRes.code === 0 && authRes.payload) {
 			setCookies(cookies, authRes.payload.accessToken)
-			throw redirect(302, '/');
+			throw redirect(302, '/projects');
 		}
 	},
 	googleSignin: async ({ cookies, request, fetch }) => {
@@ -71,7 +71,7 @@ export const actions = {
 
 		if (authRes.code === 0 && authRes.payload) {
 			setCookies(cookies, authRes.payload.accessToken)
-			throw redirect(302, '/');
+			throw redirect(302, '/projects');
 		}
 	}
 } satisfies Actions;
