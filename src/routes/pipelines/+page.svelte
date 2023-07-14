@@ -42,6 +42,20 @@
 
 		await invalidateAll();
 	}
+
+	function showLog(pl: Pipeline | DataTableRow) {
+    const tasks = pl.tasks
+    if (tasks.length === 0) {
+      return;
+    }
+
+    const currentTask = tasks.find(task => task.logUrl && task.logUrl.length > 0)
+    if (!currentTask) {
+      return
+    }
+
+    window.open(currentTask.logUrl, '_blank')
+  }
 </script>
 
 <div>
@@ -62,7 +76,7 @@
 			{#if cell.key === 'actions'}
 				<span style="margin-left: 20px">
 					<button on:click={() => runPipeline(row)} disabled={row.status == 'Busy'}>RUN</button>
-					<button>EDIT</button>
+					<button on:click={() => showLog(row)}>LOG</button>
 				</span>
 			{:else if cell.key === 'labels'}
 				{#if row.labels}
