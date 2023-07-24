@@ -133,8 +133,8 @@
 								<li>Upstream task ID: {t.upstreamTaskId}</li>
 								<li>Stream webhook: {t.streamWebhook}</li>
 								<li>Auto run: {t.autoRun}</li>
-                <li>Executed at: {localeDate(row.executedAt)}</li>
-                <li>Stopped at: {localeDate(row.stoppedAt)}</li>
+                <li>Executed at: {localeDate(t.executedAt)}</li>
+                <li>Stopped at: {localeDate(t.stoppedAt)}</li>
 								<li>Timeout: {t.timeout}</li>
 								<li>
 									Remarks:
