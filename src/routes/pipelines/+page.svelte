@@ -6,6 +6,10 @@
 	import { Tag } from 'carbon-components-svelte';
 	import { DataTable } from 'carbon-components-svelte';
 	import type { DataTableRow } from 'carbon-components-svelte/types/DataTable/DataTable.svelte';
+	import dayjs from 'dayjs'
+	import utc from 'dayjs/plugin/utc'
+
+	dayjs.extend(utc)
 
 	export let data: PageData;
 
@@ -16,7 +20,11 @@
 			return;
 		}
 
-		const task = pl.tasks[0];
+		let task = pl.tasks[0];
+		if (task.name.indexOf('services') !== -1) {
+			task = pl.tasks[1]
+		}
+
 		runTask({ pipelineId: pl.id, taskId: task.id, streamWebhook: task.streamWebhook });
 	}
 
@@ -56,6 +64,10 @@
 
     window.open(currentTask.logUrl, '_blank')
   }
+
+	function localeDate(date: string) {
+		return dayjs.utc(date).local().format('YYYY-MM-DD HH:mm:ss')
+	}
 </script>
 
 <div>
@@ -84,6 +96,8 @@
 						<Tag type="blue">{`${k}:${row.labels[k]}`}</Tag>
 					{/each}
 				{/if}
+			{:else if cell.key === 'executedAt'}
+				{localeDate(cell.value)}
 			{:else}{cell.value}{/if}
 		</svelte:fragment>
 		<svelte:fragment slot="expanded-row" let:row>
@@ -92,8 +106,8 @@
 				<li>Repo watched: {row.repoWatched}</li>
 				<li>Branch watched: {row.branchWatched}</li>
 				<li>Auto run: {row.autoRun}</li>
-				<li>Executed at: {row.executedAt}</li>
-				<li>Stopped at: {row.stoppedAt}</li>
+				<li>Executed at: {localeDate(row.executedAt)}</li>
+				<li>Stopped at: {localeDate(row.stoppedAt)}</li>
 				<li>Arguments: {row.arguments}</li>
 			</ul>
 			{#if row.tasks?.length > 0}
@@ -119,8 +133,8 @@
 								<li>Upstream task ID: {t.upstreamTaskId}</li>
 								<li>Stream webhook: {t.streamWebhook}</li>
 								<li>Auto run: {t.autoRun}</li>
-								<li>Executed at: {t.executedAt}</li>
-								<li>Stopped at: {t.stoppedAt}</li>
+                <li>Executed at: {localeDate(row.executedAt)}</li>
+                <li>Stopped at: {localeDate(row.stoppedAt)}</li>
 								<li>Timeout: {t.timeout}</li>
 								<li>
 									Remarks:
