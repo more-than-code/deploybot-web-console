@@ -6,7 +6,7 @@ ARG VITE_GOOGLE_CLIENT_ID
 COPY . .
 
 RUN \
-  # --mount=type=cache,target=./node_modules \
+  --mount=type=cache,target=./node_modules \
   npm install && npm run build
 
 CMD [ "npm", "run", "start" ]
