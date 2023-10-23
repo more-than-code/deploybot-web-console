@@ -2,8 +2,7 @@
 	import type { PageData } from './$types';
 	import type { Pipeline } from 'models/pipeline';
 	import { invalidateAll } from '$app/navigation';
-	import 'carbon-components-svelte/css/white.css';
-	import { Tag } from 'carbon-components-svelte';
+	import { Grid, Tag } from 'carbon-components-svelte';
 	import { DataTable } from 'carbon-components-svelte';
 	import type { DataTableRow } from 'carbon-components-svelte/types/DataTable/DataTable.svelte';
 
@@ -46,6 +45,7 @@
 
 <div>
 	<h1>Pipelines</h1>
+	<Grid></Grid>
 	<DataTable
 		expandable
 		headers={[

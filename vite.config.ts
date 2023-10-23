@@ -8,14 +8,17 @@ const config: UserConfig = {
 	},
 	server: {
 		proxy: {
-			'/api': 'https://console.deploybot.dev',
+			'/api': {
+				target: 'https://console.deploybot.dev',
+				changeOrigin: true,
+			},
 			// '/api': {
 			// 	target: 'http://localhost:8090/',
 			// 	changeOrigin: true,
 			// 	rewrite: path => path.replace(/^\/api/, '')
 			// }
-		}
-	}
+		},
+	},
 };
 
 export default config;
