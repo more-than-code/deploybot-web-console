@@ -14,7 +14,7 @@
 			<ul>
 				<li>ID: {proj.id}</li>
 				<li>
-					<a href={'/projects/' + proj.id}>View details</a>
+					<a href={'/pipelines?pid=' + proj.id}>View details</a>
 				</li>
 			</ul>
 		</div>

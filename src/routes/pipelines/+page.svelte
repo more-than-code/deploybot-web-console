@@ -5,6 +5,10 @@
 	import { Grid, Tag } from 'carbon-components-svelte';
 	import { DataTable } from 'carbon-components-svelte';
 	import type { DataTableRow } from 'carbon-components-svelte/types/DataTable/DataTable.svelte';
+	import dayjs from 'dayjs'
+	import utc from 'dayjs/plugin/utc'
+
+	dayjs.extend(utc)
 
 	export let data: PageData;
 
@@ -15,7 +19,11 @@
 			return;
 		}
 
-		const task = pl.tasks[0];
+		let task = pl.tasks[0];
+		if (task.name.indexOf('services') !== -1) {
+			task = pl.tasks[1]
+		}
+
 		runTask({ pipelineId: pl.id, taskId: task.id, streamWebhook: task.streamWebhook });
 	}
 
@@ -41,6 +49,24 @@
 
 		await invalidateAll();
 	}
+
+	function showLog(pl: Pipeline | DataTableRow) {
+    const tasks = pl.tasks
+    if (tasks.length === 0) {
+      return;
+    }
+
+    const currentTask = tasks.find(task => task.logUrl && task.logUrl.length > 0)
+    if (!currentTask) {
+      return
+    }
+
+    window.open(currentTask.logUrl, '_blank')
+  }
+
+	function localeDate(date: string) {
+		return dayjs.utc(date).local().format('YYYY-MM-DD HH:mm:ss')
+	}
 </script>
 
 <div>
@@ -62,7 +88,7 @@
 			{#if cell.key === 'actions'}
 				<span style="margin-left: 20px">
 					<button on:click={() => runPipeline(row)} disabled={row.status == 'Busy'}>RUN</button>
-					<button>EDIT</button>
+					<button on:click={() => showLog(row)}>LOG</button>
 				</span>
 			{:else if cell.key === 'labels'}
 				{#if row.labels}
@@ -70,6 +96,8 @@
 						<Tag type="blue">{`${k}:${row.labels[k]}`}</Tag>
 					{/each}
 				{/if}
+			{:else if cell.key === 'executedAt'}
+				{localeDate(cell.value)}
 			{:else}{cell.value}{/if}
 		</svelte:fragment>
 		<svelte:fragment slot="expanded-row" let:row>
@@ -78,8 +106,8 @@
 				<li>Repo watched: {row.repoWatched}</li>
 				<li>Branch watched: {row.branchWatched}</li>
 				<li>Auto run: {row.autoRun}</li>
-				<li>Executed at: {row.executedAt}</li>
-				<li>Stopped at: {row.stoppedAt}</li>
+				<li>Executed at: {localeDate(row.executedAt)}</li>
+				<li>Stopped at: {localeDate(row.stoppedAt)}</li>
 				<li>Arguments: {row.arguments}</li>
 			</ul>
 			{#if row.tasks?.length > 0}
@@ -105,8 +133,8 @@
 								<li>Upstream task ID: {t.upstreamTaskId}</li>
 								<li>Stream webhook: {t.streamWebhook}</li>
 								<li>Auto run: {t.autoRun}</li>
-								<li>Executed at: {t.executedAt}</li>
-								<li>Stopped at: {t.stoppedAt}</li>
+                <li>Executed at: {localeDate(t.executedAt)}</li>
+                <li>Stopped at: {localeDate(t.stoppedAt)}</li>
 								<li>Timeout: {t.timeout}</li>
 								<li>
 									Remarks:
