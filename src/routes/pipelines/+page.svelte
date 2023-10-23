@@ -5,10 +5,11 @@
 	import { Grid, Tag } from 'carbon-components-svelte';
 	import { DataTable } from 'carbon-components-svelte';
 	import type { DataTableRow } from 'carbon-components-svelte/types/DataTable/DataTable.svelte';
-	import dayjs from 'dayjs'
-	import utc from 'dayjs/plugin/utc'
+	import dayjs from 'dayjs';
+	import utc from 'dayjs/plugin/utc';
+	import type { Task } from 'vitest';
 
-	dayjs.extend(utc)
+	dayjs.extend(utc);
 
 	export let data: PageData;
 
@@ -21,7 +22,7 @@
 
 		let task = pl.tasks[0];
 		if (task.name.indexOf('services') !== -1) {
-			task = pl.tasks[1]
+			task = pl.tasks[1];
 		}
 
 		runTask({ pipelineId: pl.id, taskId: task.id, streamWebhook: task.streamWebhook });
@@ -51,27 +52,27 @@
 	}
 
 	function showLog(pl: Pipeline | DataTableRow) {
-    const tasks = pl.tasks
-    if (tasks.length === 0) {
-      return;
-    }
+		const tasks = pl.tasks;
+		if (tasks.length === 0) {
+			return;
+		}
 
-    const currentTask = tasks.find(task => task.logUrl && task.logUrl.length > 0)
-    if (!currentTask) {
-      return
-    }
+		const currentTask = tasks.find((task: any) => task.logUrl && task.logUrl.length > 0);
+		if (!currentTask) {
+			return;
+		}
 
-    window.open(currentTask.logUrl, '_blank')
-  }
+		window.open(currentTask.logUrl, '_blank');
+	}
 
 	function localeDate(date: string) {
-		return dayjs.utc(date).local().format('YYYY-MM-DD HH:mm:ss')
+		return dayjs.utc(date).local().format('YYYY-MM-DD HH:mm:ss');
 	}
 </script>
 
 <div>
 	<h1>Pipelines</h1>
-	<Grid></Grid>
+	<Grid />
 	<DataTable
 		expandable
 		headers={[
@@ -133,8 +134,8 @@
 								<li>Upstream task ID: {t.upstreamTaskId}</li>
 								<li>Stream webhook: {t.streamWebhook}</li>
 								<li>Auto run: {t.autoRun}</li>
-                <li>Executed at: {localeDate(t.executedAt)}</li>
-                <li>Stopped at: {localeDate(t.stoppedAt)}</li>
+								<li>Executed at: {localeDate(t.executedAt)}</li>
+								<li>Stopped at: {localeDate(t.stoppedAt)}</li>
 								<li>Timeout: {t.timeout}</li>
 								<li>
 									Remarks:
