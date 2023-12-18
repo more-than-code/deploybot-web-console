@@ -7,7 +7,6 @@
 	import type { DataTableRow } from 'carbon-components-svelte/types/DataTable/DataTable.svelte';
 	import dayjs from 'dayjs';
 	import utc from 'dayjs/plugin/utc';
-	import type { Task } from 'vitest';
 
 	dayjs.extend(utc);
 
