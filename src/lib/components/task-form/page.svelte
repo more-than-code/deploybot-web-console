@@ -1,21 +1,107 @@
 <script lang="ts">
-  import { Form, FormGroup, Modal, TextArea, TextInput } from 'carbon-components-svelte'
+  import { Button, FormGroup, Loading, Modal, TextArea, TextInput } from 'carbon-components-svelte'
+  import type { BuildConfig, DeployConfig, Task } from 'models/pipeline'
+  import type { TaskModalReq, TaskPayload, TaskUpdateInput } from 'models/task'
+  import type { ItemResponse } from 'models/response'
+  import { transformCameCase } from '$lib/shared/utils/utils'
 
   export let open = false
-  export let pipelineId = ''
-  export let taskId = ''
+  export let taskModalReq: TaskModalReq | undefined
 
-  $: taskId !== '' && getTask()
+  let task: Task | undefined
+  let buildConfig: BuildConfig | undefined
+  let deployConfig: DeployConfig | undefined
+  let isLoading = false
+
+  $: taskModalReq && getTask()
 
   async function getTask() {
-    const res = await fetch(`/api/task?pid=${pipelineId}&id=${taskId}`, {
+    if (!taskModalReq || isLoading) return
+
+    isLoading = true
+    const res: Response = await fetch(`/api/task?pid=${taskModalReq.pipelineId}&id=${taskModalReq.id}`, {
       method: 'GET',
       headers: {
-        'Authorization': `Bearer `
+        'Authorization': `Bearer ${taskModalReq.accessToken}`
       }
     })
 
-    console.log(res)
+    if (res.status !== 200) {
+      console.info(res.status, res.statusText)
+      isLoading = false
+      return
+    }
+
+    const taskRes: ItemResponse<TaskPayload> = await res.json()
+    task = taskRes.payload.Task
+
+    if (taskModalReq.isBuild) {
+      buildConfig = transformCameCase(task.config as BuildConfig)
+    } else {
+      deployConfig = task.config as DeployConfig
+    }
+
+    isLoading = false
+  }
+
+  function filterEmptyEnv() {
+    if (!taskModalReq || taskModalReq.isBuild || !deployConfig) return
+
+    deployConfig.env = deployConfig.env.filter(env => env !== '')
+  }
+
+  function handleCancel() {
+    open = false
+    taskModalReq = undefined
+    buildConfig = undefined
+    deployConfig = undefined
+    task = undefined
+  }
+
+  async function handleSubmit(e: Event) {
+    e.preventDefault()
+
+    if (!taskModalReq || !task || isLoading) return
+
+    filterEmptyEnv()
+
+    const taskUpdateInput: TaskUpdateInput = {
+      id: task.id,
+      pipelineId: taskModalReq.pipelineId,
+      task: {
+        config: taskModalReq.isBuild ? buildConfig : deployConfig
+      }
+    }
+
+    isLoading = true
+    const res: Response = await fetch(`/api/task`, {
+      method: 'PATCH',
+      headers: {
+        'Authorization': `Bearer ${taskModalReq.accessToken}`
+      },
+      body: JSON.stringify(taskUpdateInput)
+    })
+
+    if (res.status !== 200) {
+      console.info(res.status, res.statusText)
+      isLoading = false
+      return
+    }
+
+    window.location.reload()
+  }
+
+  function handleAddEnv() {
+    if (!deployConfig) return
+
+    deployConfig.env = [...deployConfig.env, '']
+  }
+
+  function handleRemoveEnv(i: number) {
+    if (!deployConfig) return
+
+    deployConfig.env.splice(i, 1)
+    deployConfig.env = deployConfig.env
   }
 </script>
 
@@ -24,35 +110,76 @@
   modalHeading="Modify Task"
   primaryButtonText="Confirm"
   secondaryButtonText="Cancel"
-  on:click:button--secondary={() => (open = false)}
+  on:click:button--secondary={handleCancel}
+  on:submit={handleSubmit}
+  on:close={handleCancel}
 >
-  <Form>
-    <FormGroup legendText="Env Config">
-      <TextArea placeholder="Please input env config"/>
-    </FormGroup>
+  <Loading active={isLoading}/>
+  {#if taskModalReq && buildConfig}
     <FormGroup legendText="Image Name">
-      <TextInput placeholder="Please input image name"/>
+      <TextInput bind:value={buildConfig.imageName} placeholder="Please input image name"/>
     </FormGroup>
     <FormGroup legendText="Image Tag">
-      <TextInput placeholder="Please input image tag"/>
+      <TextInput bind:value={buildConfig.imageTag} placeholder="Please input image tag"/>
     </FormGroup>
-    <FormGroup legendText="Mount Source">
-      <TextInput placeholder="Please input image tag"/>
+    <FormGroup legendText="Args">
+      <TextArea bind:value={buildConfig.args} placeholder="Please input args"/>
     </FormGroup>
-    <FormGroup legendText="Mount Target">
-      <TextInput placeholder="Please input mount target"/>
+    <FormGroup legendText="Dockerfile">
+      <TextInput bind:value={buildConfig.dockerfile} placeholder="Please input dockerfile"/>
     </FormGroup>
-    <FormGroup legendText="Network Id">
-      <TextInput placeholder="Please input network id"/>
+    <FormGroup legendText="Repo Url">
+      <TextInput bind:value={buildConfig.repoUrl} placeholder="Please input repo url"/>
     </FormGroup>
-    <FormGroup legendText="Network Name">
-      <TextInput placeholder="Please input network name"/>
+    <FormGroup legendText="Repo Name">
+      <TextInput bind:value={buildConfig.repoName} placeholder="Please input repo name"/>
     </FormGroup>
-    <FormGroup legendText="Restart Policy">
-      <TextInput placeholder="Please input restart policy"/>
+    <FormGroup legendText="Repo Branch">
+      <TextInput bind:value={buildConfig.repoBranch} placeholder="Please input repo branch"/>
+    </FormGroup>
+  {:else if taskModalReq && deployConfig}
+    <FormGroup legendText="Env">
+      {#each deployConfig.env as env, i}
+        <div class="env-item">
+          <TextInput bind:value={env} placeholder="Please input env,ex: key=value" style="margin-right: 10px;"/>
+          <Button kind="danger-tertiary" size="small" on:click={() => handleRemoveEnv(i)}>Remove</Button>
+        </div>
+      {/each}
+      <Button kind="tertiary" on:click={handleAddEnv}>Add</Button>
+    </FormGroup>
+    <FormGroup legendText="Image Name">
+      <TextInput bind:value={deployConfig.imageName} placeholder="Please input image name"/>
+    </FormGroup>
+    <FormGroup legendText="Image Tag">
+      <TextInput bind:value={deployConfig.imageTag} placeholder="Please input image tag"/>
     </FormGroup>
     <FormGroup legendText="Service Name">
-      <TextInput placeholder="Please input service name"/>
+      <TextInput bind:value={deployConfig.serviceName} placeholder="Please input service name"/>
     </FormGroup>
-  </Form>
+    <FormGroup legendText="Mount Source">
+      <TextInput bind:value={deployConfig.mountSource} placeholder="Please input mount source"/>
+    </FormGroup>
+    <FormGroup legendText="Mount Target">
+      <TextInput bind:value={deployConfig.mountTarget} placeholder="Please input mount target"/>
+    </FormGroup>
+    <FormGroup legendText="Host Port">
+      <TextInput bind:value={deployConfig.hostPort} placeholder="Please input host port"/>
+    </FormGroup>
+    <FormGroup legendText="Expose Port">
+      <TextInput bind:value={deployConfig.exposedPort} placeholder="Please input expose port"/>
+    </FormGroup>
+    <FormGroup legendText="Network Id">
+      <TextInput bind:value={deployConfig.networkId} placeholder="Please input network id"/>
+    </FormGroup>
+    <FormGroup legendText="Network Name">
+      <TextInput bind:value={deployConfig.networkName} placeholder="Please input network name"/>
+    </FormGroup>
+  {/if}
 </Modal>
+
+<style>
+  .env-item {
+    display: flex;
+    margin-bottom: 10px;
+  }
+</style>
