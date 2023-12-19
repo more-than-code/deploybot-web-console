@@ -1,6 +1,7 @@
 <script lang="ts">
   import type { PageData } from './$types'
   import type { Pipeline } from 'models/pipeline'
+  import type { TaskModalReq } from 'models/task'
   import { invalidateAll } from '$app/navigation'
   import { Button, DataTable, Grid, Tag } from 'carbon-components-svelte'
   import type { DataTableRow } from 'carbon-components-svelte/types/DataTable/DataTable.svelte'
@@ -14,8 +15,7 @@
   $: pipelines = data.pipelines ?? []
 
   let open = false
-  let currentTaskId = ''
-  let currentPipelineId = ''
+  let taskModalReq: TaskModalReq
 
   function runPipeline(pl: Pipeline | DataTableRow) {
     if (pl.tasks.length === 0) {
@@ -71,9 +71,18 @@
     return dayjs.utc(date).local().format('YYYY-MM-DD HH:mm:ss')
   }
 
-  function showTaskFormModal(pipelineId: string, taskId: string) {
-    currentPipelineId = pipelineId
-    currentTaskId = taskId
+  function showTaskFormModal({ id, pipelineId, name }: {
+    id: string,
+    pipelineId: string
+    name: string
+  }) {
+    taskModalReq = {
+      id,
+      pipelineId,
+      isBuild: name.indexOf('build') !== -1,
+      accessToken: data.accessToken || ''
+    }
+
     open = true
   }
 </script>
@@ -96,7 +105,7 @@
     <svelte:fragment slot="cell" let:cell let:row>
       {#if cell.key === 'actions'}
         <Button size="small" on:click={() => runPipeline(row)} disabled={row.status === 'Busy'}>RUN</Button>
-        <Button size="small" on:click={() => showLog(row)}>LOG</Button>
+        <Button size="small" kind="tertiary" on:click={() => showLog(row)}>LOG</Button>
       {:else if cell.key === 'labels'}
         {#if row.labels}
           {#each Object.keys(row.labels) as k}
@@ -133,7 +142,11 @@
 											runTask({ taskId: t.id, pipelineId: row.id, streamWebhook: t.streamWebhook })}
                   >RUN</Button
                   >
-									<Button size="small" on:click={() => showTaskFormModal(row.id, t.id)}>EDIT</Button>
+									<Button size="small" kind="tertiary" on:click={() => showTaskFormModal({
+									id: t.id,
+									pipelineId: row.id,
+									name: t.name
+									})}>EDIT</Button>
 								</span>
               </li>
               <ul>
@@ -162,7 +175,7 @@
     </svelte:fragment>
   </DataTable>
 
-  <TaskFormModal bind:open={open} pipelineId={currentPipelineId} taskId={currentTaskId}/>
+  <TaskFormModal bind:open={open} taskModalReq={taskModalReq}/>
 </div>
 
 <style>
