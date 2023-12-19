@@ -1,6 +1,6 @@
-import { fail, redirect, type Cookies } from '@sveltejs/kit';
-import type { AuthenticationResponse } from 'models/user';
-import type { Actions } from './$types';
+import { type Cookies, fail, redirect } from '@sveltejs/kit'
+import type { AuthenticationResponse } from 'models/user'
+import type { Actions } from './$types'
 
 function setCookies(cookies: Cookies, accessToken: string) {
 	cookies.set('accessToken', accessToken, {
@@ -71,6 +71,7 @@ export const actions = {
 
 		if (authRes.code === 0 && authRes.payload) {
 			setCookies(cookies, authRes.payload.accessToken)
+
 			throw redirect(302, '/projects');
 		}
 	}

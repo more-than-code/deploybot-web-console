@@ -1,17 +1,18 @@
-import type { Pipeline } from 'models/pipeline';
-import type { ItemsResponse } from 'models/response';
-import type { PageServerLoad } from './$types';
+import type { Pipeline } from 'models/pipeline'
+import type { ItemsResponse } from 'models/response'
+import type { PageServerLoad } from './$types'
 
-export const load = (async ({ fetch, url }) => {
-	const res = await fetch('/api/pipelines?pid=' + url.searchParams.get('pid'), {
-		method: 'GET'
-	});
-		
-	if (res.status == 200) {
-		const pRes: ItemsResponse<Pipeline> = await res.json();
+export const load = (async ({ fetch, url, cookies }) => {
+  const res = await fetch('/api/pipelines?pid=' + url.searchParams.get('pid'), {
+    method: 'GET'
+  })
 
-		return {
-			pipelines: pRes.payload.items
-		};
-	}
-}) satisfies PageServerLoad;
+  if (res.status == 200) {
+    const pRes: ItemsResponse<Pipeline> = await res.json()
+
+    return {
+      pipelines: pRes.payload.items,
+      accessToken: cookies.get('accessToken')
+    }
+  }
+}) satisfies PageServerLoad
