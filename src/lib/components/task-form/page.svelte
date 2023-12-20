@@ -40,7 +40,7 @@
       buildConfig = transformCameCase(task.config as BuildConfig)
       buildConfigArgs = obj2Arr(buildConfig.args)
     } else {
-      deployConfig = task.config as DeployConfig
+      deployConfig = transformCameCase(task.config as DeployConfig)
       deployConfig.env = deployConfig.env ? deployConfig.env : []
     }
 
