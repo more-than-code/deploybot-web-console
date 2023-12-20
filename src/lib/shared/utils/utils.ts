@@ -41,7 +41,7 @@ export function arr2Obj(arr: string[]): object {
   return obj
 }
 
-export function transformCameCase<T>(data: T): T {
+export function transformCamelCase<T>(data: T): T {
   if (!data) return data
 
   for (const key in data) {

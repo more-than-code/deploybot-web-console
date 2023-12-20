@@ -3,7 +3,7 @@
   import type { BuildConfig, DeployConfig, Task } from 'models/pipeline'
   import type { TaskModalReq, TaskPayload, TaskUpdateInput } from 'models/task'
   import type { ItemResponse } from 'models/response'
-  import { arr2Obj, obj2Arr, transformCameCase } from '$lib/shared/utils/utils'
+  import { arr2Obj, obj2Arr, transformCamelCase } from '$lib/shared/utils/utils'
 
   export let open = false
   export let taskModalReq: TaskModalReq | undefined
@@ -37,10 +37,10 @@
     task = taskRes.payload.Task
 
     if (taskModalReq.isBuild) {
-      buildConfig = transformCameCase(task.config as BuildConfig)
+      buildConfig = transformCamelCase(task.config as BuildConfig)
       buildConfigArgs = obj2Arr(buildConfig.args)
     } else {
-      deployConfig = transformCameCase(task.config as DeployConfig)
+      deployConfig = transformCamelCase(task.config as DeployConfig)
       deployConfig.env = deployConfig.env ? deployConfig.env : []
     }
 
