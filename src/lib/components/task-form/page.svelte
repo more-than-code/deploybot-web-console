@@ -41,6 +41,7 @@
       buildConfigArgs = obj2Arr(buildConfig.args)
     } else {
       deployConfig = task.config as DeployConfig
+      deployConfig.env = deployConfig.env ? deployConfig.env : []
     }
 
     isLoading = false
