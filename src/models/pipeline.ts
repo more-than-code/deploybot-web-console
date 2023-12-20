@@ -1,7 +1,7 @@
 export type BuildConfig = {
   imageName: string;
   imageTag: string;
-  args: string
+  args: object;
   dockerfile: string;
   repoUrl: string;
   repoName: string;

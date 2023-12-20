@@ -3,7 +3,7 @@
   import type { BuildConfig, DeployConfig, Task } from 'models/pipeline'
   import type { TaskModalReq, TaskPayload, TaskUpdateInput } from 'models/task'
   import type { ItemResponse } from 'models/response'
-  import { transformCameCase } from '$lib/shared/utils/utils'
+  import { arr2Obj, obj2Arr, transformCameCase } from '$lib/shared/utils/utils'
 
   export let open = false
   export let taskModalReq: TaskModalReq | undefined
@@ -11,6 +11,7 @@
   let task: Task | undefined
   let buildConfig: BuildConfig | undefined
   let deployConfig: DeployConfig | undefined
+  let buildConfigArgs: string[] = []
   let isLoading = false
 
   $: taskModalReq && getTask()
@@ -37,6 +38,7 @@
 
     if (taskModalReq.isBuild) {
       buildConfig = transformCameCase(task.config as BuildConfig)
+      buildConfigArgs = obj2Arr(buildConfig.args)
     } else {
       deployConfig = task.config as DeployConfig
     }
@@ -48,6 +50,12 @@
     if (!taskModalReq || taskModalReq.isBuild || !deployConfig) return
 
     deployConfig.env = deployConfig.env.filter(env => env !== '')
+  }
+
+  function transformArgs() {
+    if (!taskModalReq || !taskModalReq.isBuild || !buildConfig) return
+
+    buildConfig.args = arr2Obj(buildConfigArgs)
   }
 
   function handleCancel() {
@@ -64,6 +72,7 @@
     if (!taskModalReq || !task || isLoading) return
 
     filterEmptyEnv()
+    transformArgs()
 
     const taskUpdateInput: TaskUpdateInput = {
       id: task.id,
@@ -103,6 +112,15 @@
     deployConfig.env.splice(i, 1)
     deployConfig.env = deployConfig.env
   }
+
+  function handleAddArg() {
+    buildConfigArgs = [...buildConfigArgs, '']
+  }
+
+  function handleRemoveArg(i: number) {
+    buildConfigArgs.splice(i, 1)
+    buildConfigArgs = buildConfigArgs
+  }
 </script>
 
 <Modal
@@ -123,7 +141,13 @@
       <TextInput bind:value={buildConfig.imageTag} placeholder="Please input image tag"/>
     </FormGroup>
     <FormGroup legendText="Args">
-      <TextArea bind:value={buildConfig.args} placeholder="Please input args"/>
+      {#each buildConfigArgs as arg, i}
+        <div class="env-item">
+          <TextInput bind:value={arg} placeholder="Please input arg,ex: key=value" style="margin-right: 10px;"/>
+          <Button kind="danger-tertiary" size="small" on:click={() => handleRemoveArg(i)}>Remove</Button>
+        </div>
+      {/each}
+      <Button kind="tertiary" on:click={handleAddArg}>Add</Button>
     </FormGroup>
     <FormGroup legendText="Dockerfile">
       <TextInput bind:value={buildConfig.dockerfile} placeholder="Please input dockerfile"/>
