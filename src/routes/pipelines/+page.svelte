@@ -1,9 +1,9 @@
 <script lang="ts">
   import type { PageData } from './$types'
   import type { Pipeline } from 'models/pipeline'
-  import type { TaskModalReq } from 'models/task'
+  import type { TaskDeleteReq, TaskModalReq } from 'models/task'
   import { invalidateAll } from '$app/navigation'
-  import { Button, DataTable, Grid, Tag } from 'carbon-components-svelte'
+  import { Button, DataTable, Grid, Modal, Tag } from 'carbon-components-svelte'
   import type { DataTableRow } from 'carbon-components-svelte/types/DataTable/DataTable.svelte'
   import TaskFormModal from '$lib/components/task-form/page.svelte'
   import dayjs from 'dayjs'
@@ -16,6 +16,8 @@
 
   let open = false
   let taskModalReq: TaskModalReq
+  let openTaskDeleteModal = false
+  let taskDeleteReq: TaskDeleteReq
 
   function runPipeline(pl: Pipeline | DataTableRow) {
     if (pl.tasks.length === 0) {
@@ -71,19 +73,42 @@
     return dayjs.utc(date).local().format('YYYY-MM-DD HH:mm:ss')
   }
 
-  function showTaskFormModal({ id, pipelineId, name }: {
-    id: string,
+  function showTaskFormModal({ id, pipelineId }: {
+    id?: string,
     pipelineId: string
-    name: string
   }) {
     taskModalReq = {
       id,
       pipelineId,
-      isBuild: name.indexOf('build') !== -1,
       accessToken: data.accessToken || ''
     }
 
     open = true
+  }
+
+  function handleOpenDeleteTaskModal({ pipelineId, taskId }: { pipelineId: string, taskId: string }) {
+    taskDeleteReq = {
+      pipelineId,
+      id: taskId
+    }
+
+    openTaskDeleteModal = true
+  }
+
+  async function handleDeleteTask() {
+    const res: Response = await fetch('/api/task', {
+      method: 'DELETE',
+      headers: {
+        'Authorization': `Bearer ${data.accessToken}`
+      },
+      body: JSON.stringify(taskDeleteReq)
+    })
+
+    if (res.status !== 200) {
+      return
+    }
+
+    window.location.reload()
   }
 </script>
 
@@ -126,6 +151,7 @@
         <li>Stopped at: {localeDate(row.stoppedAt)}</li>
         <li>Arguments: {row.arguments}</li>
       </ul>
+      <Button size="small" style="margin: 10px 0;" on:click={() => showTaskFormModal({ pipelineId: row.id })}>Add Task</Button>
       {#if row.tasks?.length > 0}
         <details>
           <summary>Tasks</summary>
@@ -133,7 +159,7 @@
             {#each row.tasks as t}
               <hr/>
               <li style="margin-bottom: 10px; display: flex; align-items:center;">
-                Name: <b>{t.name}</b> Status: <b>{t.status}</b>
+                Name: <b>{t.name}</b> &nbsp;Status: <b>{t.status}</b>
                 <span style="margin-left: 20px">
 									<Button
                     size="small"
@@ -144,9 +170,12 @@
                   >
 									<Button size="small" kind="tertiary" on:click={() => showTaskFormModal({
 									id: t.id,
-									pipelineId: row.id,
-									name: t.name
+									pipelineId: row.id
 									})}>EDIT</Button>
+                  <Button
+                    size="small" kind="danger-tertiary"
+                    on:click={() => handleOpenDeleteTaskModal({ pipelineId: row.id, taskId: t.id })}
+                  >DELETE</Button>
 								</span>
               </li>
               <ul>
@@ -174,6 +203,18 @@
       {/if}
     </svelte:fragment>
   </DataTable>
+
+  <Modal
+    danger
+    bind:open={openTaskDeleteModal}
+    modalHeading="Delete Task"
+    primaryButtonText="Delete"
+    secondaryButtonText="Cancel"
+    on:click:button--secondary={() => (openTaskDeleteModal = false)}
+    on:submit={handleDeleteTask}
+  >
+    <p>Confirm deletion of this task ?</p>
+  </Modal>
 
   <TaskFormModal bind:open={open} taskModalReq={taskModalReq}/>
 </div>

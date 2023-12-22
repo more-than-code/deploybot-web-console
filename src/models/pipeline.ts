@@ -25,19 +25,19 @@ export type DeployConfig = {
 export type Task = {
   id: string;
   name: string;
-  createdAt: number;
-  updatedAt: number;
-  executedAt: number;
-  stoppedAt: number;
-  scheduledAt: number;
-  status: string;
+  createdAt?: number;
+  updatedAt?: number;
+  executedAt?: number;
+  stoppedAt?: number;
+  scheduledAt?: number;
+  status?: string;
   upstreamTaskId: string;
   streamWebhook: string;
   logUrl: string;
-  config: BuildConfig | DeployConfig;
-  remarks: string;
+  config: BuildConfig | DeployConfig | undefined;
+  remarks?: string;
   autoRun: boolean;
-  timeout: number;
+  timeout?: number;
   type: string;
 };
 
