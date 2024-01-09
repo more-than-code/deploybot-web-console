@@ -6,8 +6,8 @@
   import { arr2Obj, obj2Arr, transformCamelCase } from '$lib/shared/utils/utils'
 
   enum TaskType {
-    Build = 'build',
-    Deploy = 'deploy'
+    BUILD = 'build',
+    DEPLOY = 'deploy'
   }
 
   export let open = false
@@ -28,7 +28,7 @@
       task = {
         id: '',
         name: '',
-        type: TaskType.Build,
+        type: TaskType.BUILD,
         autoRun: false,
         logUrl: '',
         streamWebhook: '',
@@ -65,10 +65,10 @@
     task = taskRes.payload.Task
 
     if (task.type === '') {
-      task.type = task.name.includes(TaskType.Build) ? TaskType.Build : TaskType.Deploy
+      task.type = task.name.includes(TaskType.BUILD) ? TaskType.BUILD : TaskType.DEPLOY
     }
 
-    if (task.type === TaskType.Build) {
+    if (task.type === TaskType.BUILD) {
       buildConfig = transformCamelCase(task.config as BuildConfig)
       buildConfigArgs = obj2Arr(buildConfig.args)
     } else {
@@ -80,13 +80,13 @@
   }
 
   function filterEmptyEnv() {
-    if (!taskModalReq || task?.type === TaskType.Build || !deployConfig) return
+    if (!taskModalReq || task?.type === TaskType.BUILD || !deployConfig) return
 
     deployConfig.env = deployConfig.env.filter(env => env !== '')
   }
 
   function transformArgs() {
-    if (!taskModalReq || task?.type === TaskType.Deploy || !buildConfig) return
+    if (!taskModalReq || task?.type === TaskType.DEPLOY || !buildConfig) return
 
     buildConfig.args = arr2Obj(buildConfigArgs)
   }
@@ -118,7 +118,7 @@
         pipelineId: taskModalReq.pipelineId,
         task: {
           ...task,
-          config: task.type === TaskType.Build ? buildConfig : deployConfig
+          config: task.type === TaskType.BUILD ? buildConfig : deployConfig
         }
       })
     })
@@ -156,7 +156,7 @@
   function handleTypeChange(type: string) {
     if (!task) return
 
-    if (type === TaskType.Build) {
+    if (type === TaskType.BUILD) {
       deployConfig = undefined
       buildConfig = {
         imageName: '',

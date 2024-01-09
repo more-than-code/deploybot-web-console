@@ -1,13 +1,14 @@
 <script lang="ts">
   import type { PageData } from './$types'
-  import type { Pipeline } from 'models/pipeline'
+  import type { DiskInfo, Pipeline, Task } from 'models/pipeline'
   import type { TaskDeleteReq, TaskModalReq } from 'models/task'
   import { invalidateAll } from '$app/navigation'
-  import { Button, DataTable, Grid, Modal, Tag } from 'carbon-components-svelte'
+  import { Button, DataTable, Grid, Modal, ProgressBar, Tag } from 'carbon-components-svelte'
   import type { DataTableRow } from 'carbon-components-svelte/types/DataTable/DataTable.svelte'
   import TaskFormModal from '$lib/components/task-form/page.svelte'
   import dayjs from 'dayjs'
   import utc from 'dayjs/plugin/utc'
+  import type { ItemResponse } from '../../models/response'
 
   dayjs.extend(utc)
 
@@ -110,6 +111,45 @@
 
     window.location.reload()
   }
+
+  async function getDiskInfo(pl: Pipeline | DataTableRow) {
+    if (!pl || !pl.tasks) return
+
+    const task = pl.tasks.find((task: Task) => task.name.indexOf('build') !== -1 || task.type === 'build')
+    if (!task || !task.streamWebhook || task.streamWebhook.length === 0) return
+
+    const url = task.streamWebhook.replace('/streamWebhook', '')
+    const res = await fetch(`${url}/monitor/diskInfo`, {
+      method: 'GET'
+    })
+
+    if (res.status !== 200) return
+
+    const diskInfoRes: ItemResponse<DiskInfo> = await res.json().catch(e => console.error(e))
+    if (!diskInfoRes || !diskInfoRes.payload) return
+
+    task.diskInfo = diskInfoRes.payload
+    const index = pl.tasks.findIndex((t: Task) => t.id === task.id)
+    pl.tasks.splice(index, 1, task)
+
+    pipelines = [...pipelines]
+  }
+
+  async function handleClearCache(streamWebhook: string) {
+    if (!streamWebhook || streamWebhook.length === 0) return
+
+    const url = streamWebhook.replace('/streamWebhook', '')
+    const res = await fetch(`${url}/monitor/builderCache`, {
+      method: 'DELETE',
+      mode: 'cors'
+    })
+
+    if (res.status !== 200) {
+      return
+    }
+
+    window.location.reload()
+  }
 </script>
 
 <div>
@@ -154,7 +194,7 @@
       <Button size="small" style="margin: 10px 0;" on:click={() => showTaskFormModal({ pipelineId: row.id })}>Add Task</Button>
       {#if row.tasks?.length > 0}
         <details>
-          <summary>Tasks</summary>
+          <summary on:click={() => getDiskInfo(row)}>Tasks</summary>
           <ol>
             {#each row.tasks as t}
               <hr/>
@@ -164,10 +204,8 @@
 									<Button
                     size="small"
                     disabled={t.status === 'InProgress'}
-                    on:click={() =>
-											runTask({ taskId: t.id, pipelineId: row.id, streamWebhook: t.streamWebhook })}
-                  >RUN</Button
-                  >
+                    on:click={() => runTask({ taskId: t.id, pipelineId: row.id, streamWebhook: t.streamWebhook })}
+                  >RUN</Button>
 									<Button size="small" kind="tertiary" on:click={() => showTaskFormModal({
 									id: t.id,
 									pipelineId: row.id
@@ -178,6 +216,23 @@
                   >DELETE</Button>
 								</span>
               </li>
+              {#if t.diskInfo}
+                <li style="display: flex; align-items:center;">
+                  Disk info:
+                  <div style="background-color:#fff; border: 1px solid #0F62FE; margin-left: 10px; width: 180px; margin-right: 10px;">
+                    <ProgressBar
+                      hideLabel
+                      value={t.diskInfo.availSize}
+                      max={t.diskInfo.totalSize}
+                    />
+                  </div>
+                  <Button
+                    size="small" kind="danger-tertiary"
+                    on:click={() => handleClearCache(t.streamWebhook)}
+                  >CLEAR CACHE
+                  </Button>
+                </li>
+              {/if}
               <ul>
                 <li>ID: {t.id}</li>
                 <li>Upstream task ID: {t.upstreamTaskId}</li>

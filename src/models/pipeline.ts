@@ -39,7 +39,13 @@ export type Task = {
   autoRun: boolean;
   timeout?: number;
   type: string;
+  diskInfo?: DiskInfo;
 };
+
+export type DiskInfo = {
+  totalSize: number;
+  availSize: number;
+}
 
 export type Pipeline = {
   id: string;
