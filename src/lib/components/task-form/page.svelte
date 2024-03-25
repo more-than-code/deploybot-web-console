@@ -68,10 +68,12 @@
       task.type = task.name.includes(TaskType.BUILD) ? TaskType.BUILD : TaskType.DEPLOY
     }
 
-    if (task.type === TaskType.BUILD) {
+    if (task.type.toLowerCase() === TaskType.BUILD) {
+      task.type = TaskType.BUILD
       buildConfig = transformCamelCase(task.config as BuildConfig)
       buildConfigArgs = obj2Arr(buildConfig.args)
     } else {
+      task.type = TaskType.DEPLOY
       deployConfig = transformCamelCase(task.config as DeployConfig)
       deployConfig.env = deployConfig.env ? deployConfig.env : []
     }
