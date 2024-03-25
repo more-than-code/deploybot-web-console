@@ -75,7 +75,8 @@
     } else {
       task.type = TaskType.DEPLOY
       deployConfig = transformCamelCase(task.config as DeployConfig)
-      deployConfig.env = deployConfig.env ? deployConfig.env : []
+      deployConfig.env = deployConfig.env ?? []
+      deployConfig.filesToMount = deployConfig.filesToMount ?? []
     }
 
     isLoading = false
@@ -287,11 +288,11 @@
       <FormGroup legendText="Mount Target">
         <TextInput bind:value={deployConfig.mountTarget} placeholder="Please input mount target"/>
       </FormGroup>
-      <FormGroup legendText="Env">
+      <FormGroup legendText="Files">
         {#each deployConfig.filesToMount as file, i}
           <div class="env-item">
-            <TextInput bind:value={file.name} placeholder="Please input filename,ex: key=value" style="margin-right: 10px;"/>
-            <TextArea bind:value={file.content} placeholder="Please input env,ex: key=value" style="margin-right: 10px;"/>
+            <TextInput bind:value={file.name} placeholder="Please input filename,ex: /path/name.cfg" style="margin-right: 10px;"/>
+            <TextArea bind:value={file.content} placeholder="Please input content" style="margin-right: 10px;"/>
             <Button kind="danger-tertiary" size="small" on:click={() => handleRemoveFile(i)}>Remove</Button>
           </div>
         {/each}
