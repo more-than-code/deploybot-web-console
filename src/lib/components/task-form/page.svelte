@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { Button, FormGroup, Loading, Modal, RadioButton, RadioButtonGroup, TextInput, Toggle } from 'carbon-components-svelte'
+  import { Button, FormGroup, Loading, Modal, RadioButton, RadioButtonGroup, TextArea, TextInput, Toggle } from 'carbon-components-svelte'
   import type { BuildConfig, DeployConfig, Task } from 'models/pipeline'
   import type { TaskModalReq, TaskPayload } from 'models/task'
   import type { ItemResponse } from 'models/response'
@@ -144,6 +144,19 @@
     deployConfig.env = deployConfig.env
   }
 
+  function handleAddFile() {
+    if (!deployConfig) return
+
+    deployConfig.filesToMount = [...deployConfig.filesToMount, { name: '', content: '' }]
+  }
+
+  function handleRemoveFile(i: number) {
+    if (!deployConfig) return
+
+    deployConfig.filesToMount.splice(i, 1)
+    deployConfig.filesToMount = deployConfig.filesToMount
+  }
+
   function handleAddArg() {
     buildConfigArgs = [...buildConfigArgs, '']
   }
@@ -176,6 +189,7 @@
         serviceName: '',
         mountSource: '',
         mountTarget: '',
+        filesToMount: [],
         hostPort: '',
         exposedPort: '',
         networkId: '',
@@ -270,6 +284,16 @@
       </FormGroup>
       <FormGroup legendText="Mount Target">
         <TextInput bind:value={deployConfig.mountTarget} placeholder="Please input mount target"/>
+      </FormGroup>
+      <FormGroup legendText="Env">
+        {#each deployConfig.filesToMount as file, i}
+          <div class="env-item">
+            <TextInput bind:value={file.name} placeholder="Please input filename,ex: key=value" style="margin-right: 10px;"/>
+            <TextArea bind:value={file.content} placeholder="Please input env,ex: key=value" style="margin-right: 10px;"/>
+            <Button kind="danger-tertiary" size="small" on:click={() => handleRemoveFile(i)}>Remove</Button>
+          </div>
+        {/each}
+        <Button kind="tertiary" on:click={handleAddFile}>Add</Button>
       </FormGroup>
       <FormGroup legendText="Host Port">
         <TextInput bind:value={deployConfig.hostPort} placeholder="Please input host port"/>

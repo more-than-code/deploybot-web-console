@@ -8,12 +8,18 @@ export type BuildConfig = {
   repoBranch: string;
 };
 
+export type FileMountConfig = {
+  name: string;
+  content: string;
+};
+
 export type DeployConfig = {
   imageName: string;
   imageTag: string;
   serviceName: string;
   mountSource: string;
   mountTarget: string;
+  filesToMount: FileMountConfig[];
   autoRemove: boolean;
   env: string[];
   hostPort: string;
