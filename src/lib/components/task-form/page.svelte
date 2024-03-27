@@ -107,7 +107,7 @@
 
 			deployConfig.env = deployConfig.env ?? [];
 
-			deployConfig.restartPolicy = deployConfig.restartPolicy ?? {};
+			deployConfig.restartPolicy = typeof deployConfig.restartPolicy === 'object' ?  deployConfig.restartPolicy : {name:''};
 
 			deployConfig.volumeMounts = deployConfig.volumeMounts ?? new CustomMap<string, string>();
 			deployConfig.files = deployConfig.files ?? new CustomMap<string, string>();
