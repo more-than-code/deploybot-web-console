@@ -15,10 +15,16 @@ export type FileMountConfig = {
 	content: string;
 };
 
+export type RestartPolicy = {
+	name: string;
+	maximumRetryCount?: number;
+};
+
 export type DeployConfig = {
 	imageName: string;
 	imageTag: string;
 	serviceName: string;
+	restartPolicy: RestartPolicy;
 	volumeMounts: CustomMap<string, string>;
 	files: CustomMap<string, string>;
 	autoRemove: boolean;

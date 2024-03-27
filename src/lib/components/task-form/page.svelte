@@ -107,6 +107,8 @@
 
 			deployConfig.env = deployConfig.env ?? [];
 
+			deployConfig.restartPolicy = deployConfig.restartPolicy ?? {};
+
 			deployConfig.volumeMounts = deployConfig.volumeMounts ?? new CustomMap<string, string>();
 			deployConfig.files = deployConfig.files ?? new CustomMap<string, string>();
 			deployConfig.ports = deployConfig.ports ?? new CustomMap<string, string>();
@@ -157,11 +159,15 @@
 			}
 
 			if (fileList) {
-				deployConfig.files = new CustomMap<string, string>(fileList.map(([key, value]) => [key, value]));
+				deployConfig.files = new CustomMap<string, string>(
+					fileList.map(([key, value]) => [key, value])
+				);
 			}
 
 			if (portList) {
-				deployConfig.ports = new CustomMap<string, string>(portList.map(([key, value]) => [key, value]));
+				deployConfig.ports = new CustomMap<string, string>(
+					portList.map(([key, value]) => [key, value])
+				);
 			}
 		}
 
@@ -255,6 +261,9 @@
 				imageName: '',
 				imageTag: '',
 				serviceName: '',
+				restartPolicy: {
+					name: ''
+				},
 				volumeMounts: new CustomMap<string, string>(),
 				files: new CustomMap<string, string>(),
 				ports: new CustomMap<string, string>(),
@@ -360,6 +369,13 @@
 			</FormGroup>
 			<FormGroup legendText="Service Name">
 				<TextInput bind:value={deployConfig.serviceName} placeholder="Please input service name" />
+			</FormGroup>
+			<FormGroup legendText="Restart Policy">
+				<TextInput bind:value={deployConfig.restartPolicy.name} placeholder="Please input name" />
+				<TextInput
+					bind:value={deployConfig.restartPolicy.maximumRetryCount}
+					placeholder="Please input maximum retry count"
+				/>
 			</FormGroup>
 			<FormGroup legendText="Volume Mounts">
 				{#each volumeMountList as elem}
