@@ -145,14 +145,14 @@
     width: 300px;
     cursor: pointer;
     transition: all .2s;
+  }
 
-    &:hover {
-      background-color: #ccc;
-    }
+  .project-item:hover {
+    background-color: #ccc;
+  }
 
-    &:hover .project-title {
-      color: #fff;
-    }
+  .project-item:hover .project-title {
+    color: #fff;
   }
 
   .project-title {
