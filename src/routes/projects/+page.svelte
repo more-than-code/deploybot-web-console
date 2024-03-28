@@ -69,6 +69,8 @@
   }
 
   const handleDelete = async () => {
+    if (!projectId) return
+
     const res: Response = await fetch(`/api/project/${projectId}`, {
       method: 'DELETE',
       headers: {

@@ -3,7 +3,7 @@
   import type { DiskInfo, Pipeline, Task } from 'models/pipeline'
   import type { TaskDeleteReq, TaskModalReq } from 'models/task'
   import { invalidateAll } from '$app/navigation'
-  import { Button, DataTable, Grid, Modal, ProgressBar, Tag } from 'carbon-components-svelte'
+  import { Button, DataTable, FormGroup, Grid, Modal, ProgressBar, Tag, TextInput } from 'carbon-components-svelte'
   import type { DataTableRow } from 'carbon-components-svelte/types/DataTable/DataTable.svelte'
   import TaskFormModal from '$lib/components/task-form/page.svelte'
   import dayjs from 'dayjs'
@@ -19,6 +19,11 @@
   let taskModalReq: TaskModalReq
   let openTaskDeleteModal = false
   let taskDeleteReq: TaskDeleteReq
+  let openPipelineModal = false
+  let openPipelineDeleteModal = false
+  let pipelineId = ''
+  let pipelineName = ''
+  let pipelineEnv = 'dev'
 
   function runPipeline(pl: Pipeline | DataTableRow) {
     if (pl.tasks.length === 0) {
@@ -153,9 +158,90 @@
 
     window.location.reload()
   }
+
+  const handleOpenPipelineModal = (e: Event, pipeline: Pipeline | DataTableRow | undefined = undefined) => {
+    e.stopPropagation()
+
+    if (pipeline) {
+      pipelineId = pipeline.id
+      pipelineName = pipeline.name
+      pipelineEnv = pipeline.labels['env'] || 'dev'
+    } else {
+      pipelineId = ''
+      pipelineName = ''
+      pipelineEnv = 'dev'
+    }
+
+    openPipelineModal = true
+  }
+
+  const handleSavePipeline = async (e: Event) => {
+    e.preventDefault()
+
+    if (!pipelineName) return
+
+    let res: Response
+    if (pipelineId) {
+      res = await fetch('/api/pipeline', {
+        method: 'PATCH',
+        headers: {
+          Authorization: `Bearer ${data.accessToken}`
+        },
+        body: JSON.stringify({
+          id: pipelineId,
+          pipeline: {
+            name: pipelineName,
+            labels: {
+              env: pipelineEnv
+            }
+          }
+        })
+      })
+    } else {
+      res = await fetch('/api/pipeline', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${data.accessToken}`
+        },
+        body: JSON.stringify({
+          name: pipelineName,
+          projectId: data.pid,
+          labels: {
+            env: pipelineEnv
+          }
+        })
+      })
+    }
+
+    if (res.status !== 200) return
+
+    window.location.reload()
+  }
+
+  const handleOpenPipelineDeleteModal = (e: Event, id: string) => {
+    e.stopPropagation()
+
+    pipelineId = id
+    openPipelineDeleteModal = true
+  }
+
+  const handleDeletePipeline = async () => {
+    if (!pipelineId) return
+
+    const res: Response = await fetch(`/api/pipeline/${pipelineId}`, {
+      method: 'DELETE',
+      headers: {
+        Authorization: `Bearer ${data.accessToken}`
+      }
+    })
+
+    if (res.status !== 200) return
+
+    window.location.reload()
+  }
 </script>
 
-<div>
+<div class="pipeline-wrapper">
   <h1>Pipelines</h1>
   <Grid/>
   <DataTable
@@ -172,10 +258,9 @@
   >
     <svelte:fragment slot="cell" let:cell let:row>
       {#if cell.key === 'actions'}
-        <Button size="small" on:click={() => runPipeline(row)} disabled={row.status === 'Busy'}
-        >RUN
-        </Button
-        >
+        <Button size="small" on:click={() => runPipeline(row)} disabled={row.status === 'Busy'}>
+          RUN
+        </Button>
         <Button size="small" kind="tertiary" on:click={() => showLog(row)}>LOG</Button>
       {:else if cell.key === 'labels'}
         {#if row.labels}
@@ -200,9 +285,17 @@
       <Button
         size="small"
         style="margin: 10px 0;"
-        on:click={() => showTaskFormModal({ pipelineId: row.id })}>Add Task
-      </Button
-      >
+        on:click={() => showTaskFormModal({ pipelineId: row.id })}>
+        Add Task
+      </Button>
+      <Button size="small" kind="tertiary" style="margin: 10px 0;"
+              on:click={(e) => handleOpenPipelineModal(e, row)}>
+        EDIT PIPELINE
+      </Button>
+      <Button size="small" kind="danger-tertiary" style="margin: 10px 0;"
+              on:click={(e) => handleOpenPipelineDeleteModal(e, row.id)}>
+        REMOVE PIPELINE
+      </Button>
       {#if row.tasks?.length > 0}
         <details>
           <summary on:click={() => getDiskInfo(row)}>Tasks</summary>
@@ -281,6 +374,35 @@
       {/if}
     </svelte:fragment>
   </DataTable>
+  <Button style="width: 300px; margin-top: 20px;" on:click={(e) => handleOpenPipelineModal(e)}>Add Pipeline</Button>
+
+  <Modal
+    bind:open={openPipelineModal}
+    modalHeading="Edit Pipeline"
+    primaryButtonText="Save"
+    secondaryButtonText="Cancel"
+    on:click:button--secondary={() => (openPipelineModal = false)}
+    on:submit={handleSavePipeline}
+  >
+    <FormGroup legendText="Name">
+      <TextInput bind:value={pipelineName} placeholder="Please input pipeline name"/>
+    </FormGroup>
+    <FormGroup legendText="Env">
+      <TextInput bind:value={pipelineEnv} placeholder="Please input pipeline env"/>
+    </FormGroup>
+  </Modal>
+
+  <Modal
+    danger
+    bind:open={openPipelineDeleteModal}
+    modalHeading="Delete Pipeline"
+    primaryButtonText="Delete"
+    secondaryButtonText="Cancel"
+    on:click:button--secondary={() => (openPipelineDeleteModal = false)}
+    on:submit={handleDeletePipeline}
+  >
+    <p>Confirm deletion of this pipeline ?</p>
+  </Modal>
 
   <Modal
     danger
@@ -298,4 +420,16 @@
 </div>
 
 <style>
+  .pipeline-wrapper {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+
+  h1 {
+    font-weight: 700;
+    margin-bottom: 20px;
+  }
 </style>
