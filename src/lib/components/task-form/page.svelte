@@ -271,6 +271,10 @@
 				networkName: '',
 				autoRemove: false
 			};
+
+			volumeMountList = [];
+			fileList = [];
+			portList = [];
 		}
 	}
 </script>
