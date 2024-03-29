@@ -32,6 +32,7 @@ export type DeployConfig = {
 	ports: CustomMap<string, string>;
 	networkId: string;
 	networkName: string;
+	command?: string;
 };
 
 export type Task = {

@@ -449,6 +449,9 @@
 			<FormGroup legendText="Network Name">
 				<TextInput bind:value={deployConfig.networkName} placeholder="Please input network name" />
 			</FormGroup>
+			<FormGroup legendText="Command">
+				<TextInput bind:value={deployConfig.command} placeholder="Please input command"/>
+			</FormGroup>
 		{/if}
 	{/if}
 </Modal>
