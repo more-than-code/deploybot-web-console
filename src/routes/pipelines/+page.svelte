@@ -1,6 +1,6 @@
 <script lang="ts">
   import type { PageData } from './$types'
-  import type { DiskInfo, Pipeline, Task } from 'models/pipeline'
+  import type { DiskInfo, Network, Pipeline, Task } from 'models/pipeline'
   import type { TaskDeleteReq, TaskModalReq } from 'models/task'
   import { invalidateAll } from '$app/navigation'
   import { Button, DataTable, FormGroup, Grid, Modal, ProgressBar, Tag, TextInput } from 'carbon-components-svelte'
@@ -9,6 +9,7 @@
   import dayjs from 'dayjs'
   import utc from 'dayjs/plugin/utc'
   import type { ItemResponse } from '../../models/response'
+  import { onMount } from 'svelte'
 
   dayjs.extend(utc)
 
@@ -24,6 +25,14 @@
   let pipelineId = ''
   let pipelineName = ''
   let pipelineEnv = 'dev'
+  let openNetworkModal = false
+  let openNetworkDeleteModal = false
+  let networkName = ''
+  let network: Network
+
+  onMount(() => {
+    getNetwork()
+  })
 
   function runPipeline(pl: Pipeline | DataTableRow) {
     if (pl.tasks.length === 0) {
@@ -239,6 +248,78 @@
 
     window.location.reload()
   }
+
+  const getNetwork = async () => {
+    const url = getBaseUrl()
+    if (!url) return
+
+    const res: Response = await fetch(`${url}/networks`, {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${data.accessToken}`
+      }
+    })
+
+    if (res.status !== 200) return
+
+    console.log(res)
+  }
+
+  const getBaseUrl = () => {
+    if (!pipelines || pipelines.length === 0) return undefined
+
+    let task: Task | undefined
+    pipelines.forEach(pl => {
+      if (!pl.tasks || pl.tasks.length === 0) return undefined
+
+      task = pl.tasks.find(t => t.type === 'deploy')
+    })
+
+    if (!task) return undefined
+
+    const url = task.streamWebhook.replace('/streamWebhook', '')
+    if (!url) return undefined
+
+    return url
+  }
+
+  const handleSaveNetwork = async () => {
+    if (!networkName || networkName.trim().length === 0) return
+
+    const url = getBaseUrl()
+    const res = await fetch(`${url}/network`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${data.accessToken}`
+      },
+      body: JSON.stringify({
+        name: networkName
+      })
+    })
+
+    if (res.status !== 200) return
+
+    window.location.reload()
+  }
+
+  const handleDeleteNetwork = async () => {
+    const url = getBaseUrl()
+    if (!url) return
+
+    if (!network) return
+
+    const res = await fetch(`/${url}/network/${network.name}`, {
+      method: 'DELETE',
+      headers: {
+        Authorization: `Bearer ${data.accessToken}`
+      }
+    })
+
+    if (res.status !== 200) return
+
+    window.location.reload()
+
+  }
 </script>
 
 <div class="pipeline-wrapper">
@@ -375,7 +456,18 @@
     </svelte:fragment>
   </DataTable>
   <div class="btn-group">
-    <Button style="width: 300px; margin-top: 20px;" on:click={(e) => handleOpenPipelineModal(e)}>Add Pipeline</Button>
+    <Button style="margin-top: 20px;" on:click={(e) => handleOpenPipelineModal(e)}>Add Pipeline</Button>
+    <div class="network-group">
+      {#if !network}
+        <Button kind="tertiary" on:click={() => openNetworkModal = true}>Add Network</Button>
+      {:else}
+        <Button kind="danger-tertiary" on:click={() => openNetworkDeleteModal = true}>Delete Network</Button>
+        <div class="network-item">
+          <p>Id: {network.id}</p>
+          <p>Name: {network.name}</p>
+        </div>
+      {/if}
+    </div>
   </div>
 
   <Modal
@@ -393,6 +485,21 @@
     </FormGroup>
     <FormGroup legendText="Env">
       <TextInput bind:value={pipelineEnv} placeholder="Please input pipeline env"/>
+    </FormGroup>
+  </Modal>
+
+  <Modal
+    preventCloseOnClickOutside
+    shouldSubmitOnEnter={false}
+    bind:open={openNetworkModal}
+    modalHeading="Edit Network"
+    primaryButtonText="Save"
+    secondaryButtonText="Cancel"
+    on:click:button--secondary={() => (openNetworkModal = false)}
+    on:submit={handleSaveNetwork}
+  >
+    <FormGroup legendText="Name">
+      <TextInput bind:value={networkName} placeholder="Please input network name"/>
     </FormGroup>
   </Modal>
 
@@ -422,6 +529,19 @@
     <p>Confirm deletion of this task ?</p>
   </Modal>
 
+  <Modal
+    danger
+    shouldSubmitOnEnter={false}
+    bind:open={openNetworkDeleteModal}
+    modalHeading="Delete Network"
+    primaryButtonText="Delete"
+    secondaryButtonText="Cancel"
+    on:click:button--secondary={() => (openNetworkDeleteModal = false)}
+    on:submit={handleDeleteNetwork}
+  >
+    <p>Confirm deletion of this network ?</p>
+  </Modal>
+
   <TaskFormModal bind:open {taskModalReq}/>
 </div>
 
@@ -441,6 +561,18 @@
   }
 
   .btn-group {
+    margin-left: 10px;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .network-group {
+    margin-top: 20px;
+    display: flex;
+    align-items: center;
+  }
+
+  .network-item {
     margin-left: 10px;
   }
 </style>
