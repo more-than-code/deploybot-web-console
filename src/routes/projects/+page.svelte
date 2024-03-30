@@ -101,6 +101,8 @@
   <Button style="width: 300px; margin-top: 20px;" on:click={(e) => handleOpenEditModal(e)}>Add Project</Button>
 
   <Modal
+    preventCloseOnClickOutside
+    shouldSubmitOnEnter={false}
     bind:open={openEditModal}
     modalHeading="Edit Project"
     primaryButtonText="Save"
@@ -113,6 +115,7 @@
 
   <Modal
     danger
+    shouldSubmitOnEnter={false}
     bind:open={openDeleteModal}
     modalHeading="Delete Project"
     primaryButtonText="Delete"

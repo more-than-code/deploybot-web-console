@@ -374,9 +374,13 @@
       {/if}
     </svelte:fragment>
   </DataTable>
-  <Button style="width: 300px; margin-top: 20px;" on:click={(e) => handleOpenPipelineModal(e)}>Add Pipeline</Button>
+  <div class="btn-group">
+    <Button style="width: 300px; margin-top: 20px;" on:click={(e) => handleOpenPipelineModal(e)}>Add Pipeline</Button>
+  </div>
 
   <Modal
+    preventCloseOnClickOutside
+    shouldSubmitOnEnter={false}
     bind:open={openPipelineModal}
     modalHeading="Edit Pipeline"
     primaryButtonText="Save"
@@ -394,6 +398,7 @@
 
   <Modal
     danger
+    shouldSubmitOnEnter={false}
     bind:open={openPipelineDeleteModal}
     modalHeading="Delete Pipeline"
     primaryButtonText="Delete"
@@ -406,6 +411,7 @@
 
   <Modal
     danger
+    shouldSubmitOnEnter={false}
     bind:open={openTaskDeleteModal}
     modalHeading="Delete Task"
     primaryButtonText="Delete"
@@ -424,12 +430,17 @@
     width: 100%;
     display: flex;
     flex-direction: column;
-    align-items: center;
     justify-content: center;
   }
 
   h1 {
     font-weight: 700;
     margin-bottom: 20px;
+    padding-left: 10px;
+    margin-top: 10px;
+  }
+
+  .btn-group {
+    margin-left: 10px;
   }
 </style>
