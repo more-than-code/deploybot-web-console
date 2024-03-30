@@ -127,7 +127,7 @@
     if (!task || !task.streamWebhook || task.streamWebhook.length === 0) return
 
     const url = task.streamWebhook.replace('/streamWebhook', '')
-    const res = await fetch(`${url}/monitor/diskInfo`, {
+    const res = await fetch(`${url}/diskInfo`, {
       method: 'GET'
     })
 
@@ -147,7 +147,7 @@
     if (!streamWebhook || streamWebhook.length === 0) return
 
     const url = streamWebhook.replace('/streamWebhook', '')
-    const res = await fetch(`${url}/monitor/builderCache`, {
+    const res = await fetch(`${url}/builderCache`, {
       method: 'DELETE',
       mode: 'cors'
     })
