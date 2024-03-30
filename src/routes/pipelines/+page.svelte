@@ -136,7 +136,7 @@
     if (!task || !task.streamWebhook || task.streamWebhook.length === 0) return
 
     const url = task.streamWebhook.replace('/streamWebhook', '')
-    const res = await fetch(`${url}/diskInfo`, {
+    const res = await fetch(`${url}/diskInfo?path=/var/lib/docker`, {
       method: 'GET'
     })
 
