@@ -34,19 +34,6 @@
     getNetwork()
   })
 
-  function runPipeline(pl: Pipeline | DataTableRow) {
-    if (pl.tasks.length === 0) {
-      return
-    }
-
-    let task = pl.tasks[0]
-    if (task.name.indexOf('services') !== -1) {
-      task = pl.tasks[1]
-    }
-
-    runTask({ pipelineId: pl.id, taskId: task.id, streamWebhook: task.streamWebhook })
-  }
-
   async function runTask({
                            taskId,
                            pipelineId,
@@ -339,10 +326,13 @@
   >
     <svelte:fragment slot="cell" let:cell let:row>
       {#if cell.key === 'actions'}
-        <Button size="small" on:click={() => runPipeline(row)} disabled={row.status === 'Busy'}>
-          RUN
-        </Button>
-        <Button size="small" kind="tertiary" on:click={() => showLog(row)}>LOG</Button>
+        {#each row.tasks as t}
+          <Button size="small" style="margin: 5px 0;" disabled={row.status === 'Busy'}
+                  on:click={() => runTask({ taskId: t.id, pipelineId: row.id, streamWebhook: t.streamWebhook })}>
+            RUN {t.type} TASK
+          </Button>
+        {/each}
+        <Button size="small" style="margin: 5px 0;" kind="tertiary" on:click={() => showLog(row)}>LOG</Button>
       {:else if cell.key === 'labels'}
         {#if row.labels}
           {#each Object.keys(row.labels) as k}
@@ -367,7 +357,7 @@
         size="small"
         style="margin: 10px 0;"
         on:click={() => showTaskFormModal({ pipelineId: row.id })}>
-        Add Task
+        ADD TASK
       </Button>
       <Button size="small" kind="tertiary" style="margin: 10px 0;"
               on:click={(e) => handleOpenPipelineModal(e, row)}>
@@ -389,8 +379,7 @@
 									<Button
                     size="small"
                     disabled={t.status === 'InProgress'}
-                    on:click={() =>
-											runTask({ taskId: t.id, pipelineId: row.id, streamWebhook: t.streamWebhook })}
+                    on:click={() => runTask({ taskId: t.id, pipelineId: row.id, streamWebhook: t.streamWebhook })}
                   >RUN</Button
                   >
 									<Button
