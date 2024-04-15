@@ -329,7 +329,7 @@
         {#each row.tasks as t}
           <Button size="small" style="margin: 5px 0;" disabled={row.status === 'Busy'}
                   on:click={() => runTask({ taskId: t.id, pipelineId: row.id, streamWebhook: t.streamWebhook })}>
-            RUN {t.type} TASK
+            RUN {t.type.toUpperCase()} TASK
           </Button>
         {/each}
         <Button size="small" style="margin: 5px 0;" kind="tertiary" on:click={() => showLog(row)}>LOG</Button>
