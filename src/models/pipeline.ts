@@ -30,8 +30,7 @@ export type DeployConfig = {
   autoRemove: boolean;
   env: string[];
   ports: CustomMap<string, string>;
-  networkId: string;
-  networkName: string;
+  networks: CustomMap<string, string>;
   command?: string;
 };
 

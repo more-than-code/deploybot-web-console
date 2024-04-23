@@ -32,6 +32,7 @@
   let volumeMountList: string[][]
   let fileList: string[][]
   let portList: string[][]
+  let networkList: string[][]
 
   $: taskModalReq && getTask()
 
@@ -82,7 +83,7 @@
       if (
         typeof value === 'object' &&
         value !== null &&
-        ['volumeMounts', 'files', 'ports'].includes(key)
+        ['volumeMounts', 'files', 'ports', 'networks'].includes(key)
       ) {
         return CustomMap.fromJSON(value)
       }
@@ -112,10 +113,12 @@
       deployConfig.volumeMounts = deployConfig.volumeMounts ?? new CustomMap<string, string>()
       deployConfig.files = deployConfig.files ?? new CustomMap<string, string>()
       deployConfig.ports = deployConfig.ports ?? new CustomMap<string, string>()
+      deployConfig.networks = deployConfig.networks ?? new CustomMap<string, string>()
 
       volumeMountList = Array.from(deployConfig.volumeMounts)
       fileList = Array.from(deployConfig.files)
       portList = Array.from(deployConfig.ports)
+      networkList = Array.from(deployConfig.networks)
     }
 
     isLoading = false
@@ -167,6 +170,12 @@
       if (portList) {
         deployConfig.ports = new CustomMap<string, string>(
           portList.map(([key, value]) => [key, value])
+        )
+      }
+
+      if (networkList) {
+        deployConfig.networks = new CustomMap<string, string>(
+          networkList.map(([key, value]) => [key, value])
         )
       }
     }
@@ -231,6 +240,14 @@
     portList = portList.filter((port) => port[0] !== elem[0])
   }
 
+  function handleAddNetwork() {
+    networkList = [...networkList, ['', '']]
+  }
+
+  function handleRemoveNetwork(elem: string[]) {
+    networkList = networkList.filter((network) => network[0] !== elem[0])
+  }
+
   function handleAddArg() {
     buildConfigArgs = [...buildConfigArgs, '']
   }
@@ -267,8 +284,7 @@
         volumeMounts: new CustomMap<string, string>(),
         files: new CustomMap<string, string>(),
         ports: new CustomMap<string, string>(),
-        networkId: '',
-        networkName: '',
+        networks: new CustomMap<string, string>(),
         autoRemove: false
       }
 
@@ -450,11 +466,26 @@
         {/each}
         <Button kind="tertiary" on:click={handleAddPort}>Add</Button>
       </FormGroup>
-      <FormGroup legendText="Network Id">
-        <TextInput bind:value={deployConfig.networkId} placeholder="Please input network id"/>
-      </FormGroup>
-      <FormGroup legendText="Network Name">
-        <TextInput bind:value={deployConfig.networkName} placeholder="Please input network name"/>
+      <FormGroup legendText="Networks">
+        {#each networkList as elem}
+          <div class="env-item">
+            <TextInput
+              bind:value={elem[0]}
+              placeholder="Please input network name"
+              style="margin-right: 10px;"
+            />
+            <TextInput
+              bind:value={elem[1]}
+              placeholder="Please input network ID"
+              style="margin-right: 10px;"
+            />
+            <Button kind="danger-tertiary" size="small" on:click={() => handleRemoveNetwork(elem)}
+            >Remove
+            </Button
+            >
+          </div>
+        {/each}
+        <Button kind="tertiary" on:click={handleAddNetwork}>Add</Button>
       </FormGroup>
       <FormGroup legendText="Command">
         <TextInput bind:value={deployConfig.command} placeholder="Please input command"/>
