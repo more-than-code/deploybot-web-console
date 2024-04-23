@@ -343,10 +343,11 @@
 							size="small"
 							style="margin: 5px 0;"
 							disabled={row.status === 'Busy'}
+							kind={t?.type === 'build' ? 'primary' : 'secondary'}
 							on:click={() =>
 								runTask({ taskId: t.id, pipelineId: row.id, streamWebhook: t.streamWebhook })}
 						>
-							RUN {t.name.toUpperCase()} TASK
+							{t.name.toUpperCase()}
 						</Button>
 					{/each}
 					<Button size="small" style="margin: 5px 0;" kind="tertiary" on:click={() => showLog(row)}
