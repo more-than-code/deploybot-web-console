@@ -1,11 +1,11 @@
 <script lang="ts">
 	import { Button, FormGroup, TextInput } from 'carbon-components-svelte';
-  import { CustomMap } from '$lib/types/customMap';
+	import { CustomMap } from '$lib/types/customMap';
 	import type { BuildConfig } from 'models/pipeline';
 
 	export let config: BuildConfig;
 
-	let configArgsList = Array.from(config.args);
+	let configArgsList = Array.from(config.args ?? new CustomMap<string, string>());
 
 	$: {
 		config.args = new CustomMap<string, string>(configArgsList.map(([key, value]) => [key, value]));

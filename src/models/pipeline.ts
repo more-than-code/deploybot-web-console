@@ -1,13 +1,13 @@
 import type { CustomMap } from '$lib/types/customMap'
 
 export type BuildConfig = {
-  imageName: string;
-  imageTag: string;
-  args: CustomMap<string, string>;
-  dockerfile: string;
-  repoUrl: string;
-  repoName: string;
-  repoBranch: string;
+  imageName?: string;
+  imageTag?: string;
+  args?: CustomMap<string, string>;
+  dockerfile?: string;
+  repoUrl?: string;
+  repoName?: string;
+  repoBranch?: string;
 };
 
 export type FileMountConfig = {
@@ -21,34 +21,34 @@ export type RestartPolicy = {
 };
 
 export type DeployConfig = {
-  imageName: string;
-  imageTag: string;
-  serviceName: string;
-  restartPolicy: RestartPolicy;
-  volumeMounts: CustomMap<string, string>;
-  files: CustomMap<string, string>;
-  autoRemove: boolean;
-  env: string[];
-  ports: CustomMap<string, string>;
-  networks: CustomMap<string, string>;
+  imageName?: string;
+  imageTag?: string;
+  serviceName?: string;
+  restartPolicy?: RestartPolicy;
+  volumeMounts?: CustomMap<string, string>;
+  files?: CustomMap<string, string>;
+  autoRemove?: boolean;
+  env?: string[];
+  ports?: CustomMap<string, string>;
+  networks?: CustomMap<string, string>;
   command?: string;
 };
 
 export type Task = {
-  id: string;
-  name: string;
+  id?: string;
+  name?: string;
   createdAt?: number;
   updatedAt?: number;
   executedAt?: number;
   stoppedAt?: number;
   scheduledAt?: number;
   status?: string;
-  upstreamTaskId: string;
-  streamWebhook: string;
-  logUrl: string;
-  config: BuildConfig | DeployConfig | undefined;
+  upstreamTaskId?: string;
+  streamWebhook?: string;
+  logUrl?: string;
+  config?: BuildConfig | DeployConfig | undefined;
   remarks?: string;
-  autoRun: boolean;
+  autoRun?: boolean;
   timeout?: number;
   type: string;
   diskInfo?: DiskInfo;

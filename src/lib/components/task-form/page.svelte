@@ -27,6 +27,7 @@
 	let task: Task | undefined;
 	let buildConfig: BuildConfig | undefined;
 	let deployConfig: DeployConfig | undefined;
+
 	let isLoading = false;
 
 	$: taskModalReq && getTask();
@@ -36,22 +37,7 @@
 
 		if (!taskModalReq.id) {
 			task = {
-				id: '',
-				name: '',
-				type: TaskType.BUILD,
-				autoRun: false,
-				logUrl: '',
-				streamWebhook: '',
-				upstreamTaskId: '',
-				config: {
-					imageName: '',
-					imageTag: '',
-					args: new CustomMap<string, string>(),
-					dockerfile: '',
-					repoUrl: '',
-					repoName: '',
-					repoBranch: ''
-				}
+				type: TaskType.BUILD
 			};
 
 			handleTypeChange(task.type);
@@ -88,38 +74,19 @@
 		task = taskRes.payload.Task;
 
 		if (task.type === '') {
-			task.type = task.name.includes(TaskType.BUILD) ? TaskType.BUILD : TaskType.DEPLOY;
+			task.type = task.name?.includes(TaskType.BUILD) ? TaskType.BUILD : TaskType.DEPLOY;
 		}
 
 		if (task.type.toLowerCase() === TaskType.BUILD) {
 			task.type = TaskType.BUILD;
 			buildConfig = transformCamelCase(task.config as BuildConfig);
-
-			buildConfig.args = buildConfig.args ?? new CustomMap<string, string>();
 		} else {
 			task.type = TaskType.DEPLOY;
 			deployConfig = deployConfig ?? (task.config as DeployConfig);
-
 			deployConfig = transformCamelCase(deployConfig);
-
-			deployConfig.env = deployConfig.env ?? [];
-
-			deployConfig.restartPolicy =
-				typeof deployConfig.restartPolicy === 'object' ? deployConfig.restartPolicy : { name: '' };
-
-			deployConfig.volumeMounts = deployConfig.volumeMounts ?? new CustomMap<string, string>();
-			deployConfig.files = deployConfig.files ?? new CustomMap<string, string>();
-			deployConfig.ports = deployConfig.ports ?? new CustomMap<string, string>();
-			deployConfig.networks = deployConfig.networks ?? new CustomMap<string, string>();
 		}
 
 		isLoading = false;
-	}
-
-	function filterEmptyEnv() {
-		if (!taskModalReq || task?.type === TaskType.BUILD || !deployConfig) return;
-
-		deployConfig.env = deployConfig.env.filter((env) => env !== '');
 	}
 
 	function handleCancel() {
@@ -134,8 +101,6 @@
 		e.preventDefault();
 
 		if (!taskModalReq || !task || isLoading) return;
-
-		filterEmptyEnv();
 
 		isLoading = true;
 
@@ -167,31 +132,10 @@
 
 		if (type === TaskType.BUILD) {
 			deployConfig = undefined;
-			buildConfig = {
-				imageName: '',
-				imageTag: '',
-				args: new CustomMap<string, string>(),
-				dockerfile: '',
-				repoUrl: '',
-				repoName: '',
-				repoBranch: ''
-			};
+			buildConfig = {};
 		} else {
 			buildConfig = undefined;
-			deployConfig = {
-				env: [],
-				imageName: '',
-				imageTag: '',
-				serviceName: '',
-				restartPolicy: {
-					name: ''
-				},
-				volumeMounts: new CustomMap<string, string>(),
-				files: new CustomMap<string, string>(),
-				ports: new CustomMap<string, string>(),
-				networks: new CustomMap<string, string>(),
-				autoRemove: false
-			};
+			deployConfig = {};
 		}
 	}
 </script>

@@ -127,7 +127,7 @@
 		if (!pl || !pl.tasks) return;
 
 		const task = pl.tasks.find(
-			(task: Task) => task.name.indexOf('build') !== -1 || task.type === 'build'
+			(task: Task) => task.name?.indexOf('build') !== -1 || task.type === 'build'
 		);
 		if (!task || !task.streamWebhook || task.streamWebhook.length === 0) return;
 
@@ -276,7 +276,7 @@
 
 		if (!task) return undefined;
 
-		const url = task.streamWebhook.replace('/streamWebhook', '');
+		const url = task.streamWebhook?.replace('/streamWebhook', '');
 		if (!url) return undefined;
 
 		return url;

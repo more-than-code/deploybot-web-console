@@ -5,12 +5,16 @@
 
 	export let config: DeployConfig;
 
-	let volumeMountList = Array.from(config.volumeMounts);
-	let fileList = Array.from(config.files);
-	let portList = Array.from(config.ports);
-	let networkList = Array.from(config.networks);
+	let volumeMountList = Array.from(config.volumeMounts ?? new CustomMap<string, string>());
+	let fileList = Array.from(config.files ?? new CustomMap<string, string>());
+	let portList = Array.from(config.ports ?? new CustomMap<string, string>());
+	let networkList = Array.from(config.networks ?? new CustomMap<string, string>());
+	let envList = Array.from(config.env ?? []);
+	let restartPolicy = typeof config.restartPolicy === 'object' ? config.restartPolicy : { name: '' } ?? { name: '' };		
 
 	$: {
+		config.env = envList.filter((e) => e !== '');
+
 		config.volumeMounts = new CustomMap<string, string>(
 			volumeMountList.map(([key, value]) => [key, value])
 		);
@@ -22,19 +26,21 @@
 		config.networks = new CustomMap<string, string>(
 			networkList.map(([key, value]) => [key, value])
 		);
+
+		config.restartPolicy = restartPolicy;
 	}
 
 	function handleAddEnv() {
 		if (!config) return;
 
-		config.env = [...config.env, ''];
+		envList = [...envList, ''];
 	}
 
 	function handleRemoveEnv(i: number) {
 		if (!config) return;
 
-		config.env.splice(i, 1);
-		config.env = config.env;
+		envList.splice(i, 1);
+		envList = envList;
 	}
 
 	function handleAddFile() {
@@ -71,7 +77,7 @@
 </script>
 
 <FormGroup legendText="Env">
-	{#each config.env as env, i}
+	{#each envList as env, i}
 		<div class="env-item">
 			<TextInput
 				bind:value={env}
@@ -95,9 +101,9 @@
 	<TextInput bind:value={config.serviceName} placeholder="Please input service name" />
 </FormGroup>
 <FormGroup legendText="Restart Policy">
-	<TextInput bind:value={config.restartPolicy.name} placeholder="Please input name" />
+	<TextInput bind:value={restartPolicy.name} placeholder="Please input name" />
 	<TextInput
-		bind:value={config.restartPolicy.maximumRetryCount}
+		bind:value={restartPolicy.maximumRetryCount}
 		placeholder="Please input maximum retry count"
 	/>
 </FormGroup>
