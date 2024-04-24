@@ -3,7 +3,7 @@ import type { CustomMap } from '$lib/types/customMap'
 export type BuildConfig = {
   imageName: string;
   imageTag: string;
-  args: object;
+  args: CustomMap<string, string>;
   dockerfile: string;
   repoUrl: string;
   repoName: string;
