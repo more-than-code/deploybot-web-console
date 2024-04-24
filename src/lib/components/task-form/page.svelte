@@ -5,6 +5,7 @@
 		Modal,
 		RadioButton,
 		RadioButtonGroup,
+		TextArea,
 		TextInput,
 		Toggle
 	} from 'carbon-components-svelte';
@@ -15,6 +16,7 @@
 	import { CustomMap } from '$lib/types/customMap';
 	import BuildConfigForm from './buildConfig.svelte';
 	import DeployConfigForm from './deployConfig.svelte';
+	
 
 	enum TaskType {
 		BUILD = 'build',
@@ -27,10 +29,13 @@
 	let task: Task | undefined;
 	let buildConfig: BuildConfig | undefined;
 	let deployConfig: DeployConfig | undefined;
-
+	let configJson: string;
 	let isLoading = false;
+	let isJsonEditingMode = false;
 
-	$: taskModalReq && getTask();
+	$: {
+		taskModalReq && getTask();
+	}
 
 	async function getTask() {
 		if (!taskModalReq || isLoading) return;
@@ -95,6 +100,8 @@
 		buildConfig = undefined;
 		deployConfig = undefined;
 		task = undefined;
+    configJson = '';
+    isJsonEditingMode = false;
 	}
 
 	async function handleSubmit(e: Event) {
@@ -104,17 +111,21 @@
 
 		isLoading = true;
 
+    if (isJsonEditingMode && configJson !== '') {
+      task = JSON.parse(configJson);
+    }
+
 		const res: Response = await fetch(`/api/task`, {
-			method: task.id ? 'PATCH' : 'POST',
+			method: task?.id ? 'PATCH' : 'POST',
 			headers: {
 				Authorization: `Bearer ${taskModalReq.accessToken}`
 			},
 			body: JSON.stringify({
-				id: task.id,
+				id: task?.id,
 				pipelineId: taskModalReq.pipelineId,
 				task: {
 					...task,
-					config: task.type === TaskType.BUILD ? buildConfig : deployConfig
+					config: task?.type === TaskType.BUILD ? buildConfig : deployConfig
 				}
 			})
 		});
@@ -138,6 +149,15 @@
 			deployConfig = {};
 		}
 	}
+
+  function handleJsonEditingModeChange(e: Event) {
+    if ((e.target as HTMLInputElement)?.checked) {
+      const {createdAt, updatedAt, stoppedAt, executedAt, ...rest} =   {...task};
+      configJson = JSON.stringify(rest, null, '\t');
+    } else {
+      task = JSON.parse(configJson);
+    }
+  }
 </script>
 
 <Modal
@@ -152,36 +172,43 @@
 	on:close={handleCancel}
 >
 	<Loading active={isLoading} />
+
+	<Toggle labelText="Enable JSON Editing Mode" bind:toggled={isJsonEditingMode} on:change={handleJsonEditingModeChange}/>
+	<hr />
 	{#if task}
-		<FormGroup legendText="Task Name">
-			<TextInput bind:value={task.name} placeholder="Please input task name" />
-		</FormGroup>
-		<FormGroup legendText="Task Type">
-			<RadioButtonGroup
-				disabled={!!task.id}
-				bind:selected={task.type}
-				on:change={(e) => handleTypeChange(e.detail)}
-			>
-				<RadioButton value="build" labelText="Build" />
-				<RadioButton value="deploy" labelText="Deploy" />
-			</RadioButtonGroup>
-		</FormGroup>
-		<FormGroup legendText="Auto Run">
-			<Toggle hideLabel bind:toggled={task.autoRun} />
-		</FormGroup>
-		<FormGroup legendText="Log Url">
-			<TextInput bind:value={task.logUrl} placeholder="Please input log url" />
-		</FormGroup>
-		<FormGroup legendText="Stream Web Hook">
-			<TextInput bind:value={task.streamWebhook} placeholder="Please input stream web hook" />
-		</FormGroup>
-		<FormGroup legendText="Upstream Task Id">
-			<TextInput bind:value={task.upstreamTaskId} placeholder="Please input upstream task id" />
-		</FormGroup>
-		{#if taskModalReq && buildConfig}
-			<BuildConfigForm config={buildConfig} />
-		{:else if taskModalReq && deployConfig}
-			<DeployConfigForm config={deployConfig} />
+		{#if isJsonEditingMode}
+			<TextArea bind:value={configJson} />
+		{:else}
+			<FormGroup legendText="Task Name">
+				<TextInput bind:value={task.name} placeholder="Please input task name" />
+			</FormGroup>
+			<FormGroup legendText="Task Type">
+				<RadioButtonGroup
+					disabled={!!task.id}
+					bind:selected={task.type}
+					on:change={(e) => handleTypeChange(e.detail)}
+				>
+					<RadioButton value="build" labelText="Build" />
+					<RadioButton value="deploy" labelText="Deploy" />
+				</RadioButtonGroup>
+			</FormGroup>
+			<FormGroup legendText="Auto Run">
+				<Toggle hideLabel bind:toggled={task.autoRun} />
+			</FormGroup>
+			<FormGroup legendText="Log Url">
+				<TextInput bind:value={task.logUrl} placeholder="Please input log url" />
+			</FormGroup>
+			<FormGroup legendText="Stream Web Hook">
+				<TextInput bind:value={task.streamWebhook} placeholder="Please input stream web hook" />
+			</FormGroup>
+			<FormGroup legendText="Upstream Task Id">
+				<TextInput bind:value={task.upstreamTaskId} placeholder="Please input upstream task id" />
+			</FormGroup>
+			{#if taskModalReq && buildConfig}
+				<BuildConfigForm config={buildConfig} />
+			{:else if taskModalReq && deployConfig}
+				<DeployConfigForm config={deployConfig} />
+			{/if}
 		{/if}
 	{/if}
 </Modal>
