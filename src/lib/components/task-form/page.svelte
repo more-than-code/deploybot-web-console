@@ -202,7 +202,7 @@
 		{#if isRawJsonEditingMode}
 			<TextArea bind:value={configRawJson} />
 		{:else}
-			<FormGroup legendText="Target Server">
+			<FormGroup legendText="Webhook Host">
 				{#if task.type === TaskType.BUILD}
 					<Dropdown
 						bind:selectedId={task.webhookHost}
