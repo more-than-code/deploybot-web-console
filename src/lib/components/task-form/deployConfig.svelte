@@ -9,21 +9,12 @@
 	let volumeMountList = Array.from(config.volumeMounts ?? new CustomMap<string, string>());
 	let fileList = Array.from(config.files ?? new CustomMap<string, string>());
 	let portList = Array.from(config.ports ?? new CustomMap<string, string>());
-	let networkList = Array.from(config.networks ?? new CustomMap<string, string>());
 	let envList = Array.from(config.env ?? []);
 	let restartPolicy =
 		typeof config.restartPolicy === 'object' ? config.restartPolicy : { name: '' } ?? { name: '' };
-	let selectedNetworkIds: string[] = (function () {
-		let ids: string[] = [];
-
-		for (let i = 0; i < availNetworkList.length; i++) {
-			if (networkList.find((e) => e[1] === availNetworkList[i][1]) !== undefined) {
-				ids.push(i + '');
-			}
-		}
-
-		return ids;
-	})();
+	let selectedNetworkNameIds: string[] = Array.from(
+		config.networks ?? new CustomMap<string, string>()
+	).map(([name, id]) => `${name}:${id}`);
 
 	$: {
 		config.env = envList.filter((e) => e !== '');
@@ -36,18 +27,17 @@
 
 		config.ports = new CustomMap<string, string>(portList.map(([key, value]) => [key, value]));
 
+		const networkList = [];
+		for (const nameId of selectedNetworkNameIds) {
+			const [name, id] = nameId.split(':');
+			networkList.push([name, id]);
+		}
+
 		config.networks = new CustomMap<string, string>(
 			networkList.map(([key, value]) => [key, value])
 		);
 
 		config.restartPolicy = restartPolicy;
-	}
-
-	$: {
-		networkList = [];
-		for (const id of selectedNetworkIds) {
-			networkList.push(availNetworkList[parseInt(id)]);
-		}
 	}
 
 	function handleAddEnv() {
@@ -180,13 +170,14 @@
 	<Button kind="tertiary" on:click={handleAddPort}>Add</Button>
 </FormGroup>
 
-<FormGroup legendText={`Networks - ${networkList.map((e) => e[0])}`}>
+<FormGroup legendText={`Networks: ${selectedNetworkNameIds.map((e) => e.split(':')[0])}`}>
 	<MultiSelect
-		bind:selectedIds={selectedNetworkIds}
-		label="Select network(s)"
-		items={availNetworkList.map(([name, id], i) => ({
-			id: i + '',
-			text: `Name: ${name}; Id: ${id}`
+		bind:selectedIds={selectedNetworkNameIds}
+		label="Select"
+		helperText="Select Webhook Host first to see available networks."
+		items={availNetworkList.map(([name, id]) => ({
+			id: `${name}:${id}`,
+			text: `${name}:${id}`
 		}))}
 	/>
 </FormGroup>
