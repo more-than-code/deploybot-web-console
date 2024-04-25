@@ -88,21 +88,6 @@
 	}
 </script>
 
-<FormGroup legendText="Env">
-	{#each envList as env, i}
-		<div class="env-item">
-			<TextInput
-				bind:value={env}
-				placeholder="Please input env,ex: key=value"
-				style="margin-right: 10px;"
-			/>
-			<Button kind="danger-tertiary" size="small" on:click={() => handleRemoveEnv(i)}
-				>Remove
-			</Button>
-		</div>
-	{/each}
-	<Button kind="tertiary" on:click={handleAddEnv}>Add</Button>
-</FormGroup>
 <FormGroup legendText="Image Name">
 	<TextInput bind:value={config.imageName} placeholder="Please input image name" />
 </FormGroup>
@@ -118,6 +103,21 @@
 		bind:value={restartPolicy.maximumRetryCount}
 		placeholder="Please input maximum retry count"
 	/>
+</FormGroup>
+<FormGroup legendText="Env">
+	{#each envList as env, i}
+		<div class="env-item">
+			<TextInput
+				bind:value={env}
+				placeholder="Please input env,ex: key=value"
+				style="margin-right: 10px;"
+			/>
+			<Button kind="danger-tertiary" size="small" on:click={() => handleRemoveEnv(i)}
+				>Remove
+			</Button>
+		</div>
+	{/each}
+	<Button kind="tertiary" on:click={handleAddEnv}>Add</Button>
 </FormGroup>
 <FormGroup legendText="Volume Mounts">
 	{#each volumeMountList as elem}

@@ -54,6 +54,10 @@
 			} else {
 				if (i >= 0 && i < deployServers?.length) {
 					selectedServer = deployServers[i];
+
+					task.logUrl = `https://${selectedServer.host}:${selectedServer.port}/serviceLogs?name=${
+						(task.config as DeployConfig).serviceName
+					}`;
 				}
 			}
 
@@ -213,7 +217,6 @@
 				<Dropdown
 					bind:selectedId={selectedServerId}
 					label="Select"
-					helperText={`Stream Webhook - ${task.streamWebhook}`}
 					items={task.type === TaskType.BUILD
 						? buildServers?.map((e, i) => {
 								return { id: i + '', text: `Name: ${e.name}; Host:${e.host}; Port:${e.port}` };
@@ -222,6 +225,10 @@
 								return { id: i + '', text: `Name: ${e.name}; Host:${e.host}; Port:${e.port}` };
 						  })}
 				/>
+				<div class="autogen-text">
+					<p>{`Stream Webhook: ${task.streamWebhook}`}</p>
+					<p>{`Log URL: ${task.logUrl}`}</p>
+				</div>
 			</FormGroup>
 			<FormGroup legendText="Task Name">
 				<TextInput bind:value={task.name} placeholder="Please input task name" />
@@ -239,9 +246,6 @@
 			<FormGroup legendText="Auto Run">
 				<Checkbox bind:checked={task.autoRun} />
 			</FormGroup>
-			<FormGroup legendText="Log Url">
-				<TextInput bind:value={task.logUrl} placeholder="Please input log url" />
-			</FormGroup>
 			<FormGroup legendText="Upstream Task Id">
 				<TextInput bind:value={task.upstreamTaskId} placeholder="Please input upstream task id" />
 			</FormGroup>
@@ -256,3 +260,14 @@
 		{/if}
 	{/if}
 </Modal>
+
+<style>
+	.autogen-text {
+		margin: 5px 15px;
+		color: #888;
+	}
+
+	.autogen-text p {
+		font-size: 14px;
+	}
+</style>
