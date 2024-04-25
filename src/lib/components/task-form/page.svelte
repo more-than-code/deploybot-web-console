@@ -5,7 +5,6 @@
 		FormGroup,
 		Loading,
 		Modal,
-		MultiSelect,
 		RadioButton,
 		RadioButtonGroup,
 		TextArea,
@@ -46,13 +45,21 @@
 
 	$: {
 		if (task) {
+			const i = parseInt(selectedServerId);
+
 			if (task.type === TaskType.BUILD) {
-				selectedServer = buildServers[parseInt(selectedServerId)];
+				if (i >= 0 && i < buildServers?.length) {
+					selectedServer = buildServers[i];
+				}
 			} else {
-				selectedServer = deployServers[parseInt(selectedServerId)];
+				if (i >= 0 && i < deployServers?.length) {
+					selectedServer = deployServers[i];
+				}
 			}
 
-			task.streamWebhook = `https://${selectedServer.host}:${selectedServer.port}/streamWebhook`;
+			if (selectedServer) {
+				task.streamWebhook = `https://${selectedServer.host}:${selectedServer.port}/streamWebhook`;
+			}
 		}
 	}
 
@@ -224,11 +231,12 @@
 			<FormGroup legendText={`Stream Webhook - ${task.streamWebhook}`}>
 				<Dropdown
 					bind:selectedId={selectedServerId}
+					label="Select server"				
 					items={task.type === TaskType.BUILD
-						? buildServers.map((e, i) => {
+						? buildServers?.map((e, i) => {
 								return { id: i + '', text: `Name: ${e.name}; Host:${e.host}; Port:${e.port}` };
 						  })
-						: deployServers.map((e, i) => {
+						: deployServers?.map((e, i) => {
 								return { id: i + '', text: `Name: ${e.name}; Host:${e.host}; Port:${e.port}` };
 						  })}
 				/>
