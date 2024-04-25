@@ -1,9 +1,11 @@
 <script lang="ts">
 	import {
-	Checkbox,
+		Checkbox,
+		Dropdown,
 		FormGroup,
 		Loading,
 		Modal,
+		MultiSelect,
 		RadioButton,
 		RadioButtonGroup,
 		TextArea,
@@ -17,7 +19,7 @@
 	import { CustomMap } from '$lib/types/customMap';
 	import BuildConfigForm from './buildConfig.svelte';
 	import DeployConfigForm from './deployConfig.svelte';
-	
+	import type { Server } from 'models/projects';
 
 	enum TaskType {
 		BUILD = 'build',
@@ -26,16 +28,32 @@
 
 	export let open = false;
 	export let taskModalReq: TaskModalReq | undefined;
+	export let buildServers: Server[];
+	export let deployServers: Server[];
 
 	let task: Task | undefined;
 	let buildConfig: BuildConfig | undefined;
 	let deployConfig: DeployConfig | undefined;
-	let configJson: string;
+	let configRawJson: string;
 	let isLoading = false;
-	let isJsonEditingMode = false;
+	let isRawJsonEditingMode = false;
+	let selectedServerId = '0';
+	let selectedServer: Server;
 
 	$: {
 		taskModalReq && getTask();
+	}
+
+	$: {
+		if (task) {
+			if (task.type === TaskType.BUILD) {
+				selectedServer = buildServers[parseInt(selectedServerId)];
+			} else {
+				selectedServer = deployServers[parseInt(selectedServerId)];
+			}
+
+			task.streamWebhook = `https://${selectedServer.host}:${selectedServer.port}/streamWebhook`;
+		}
 	}
 
 	async function getTask() {
@@ -101,8 +119,8 @@
 		buildConfig = undefined;
 		deployConfig = undefined;
 		task = undefined;
-    configJson = '';
-    isJsonEditingMode = false;
+		configRawJson = '';
+		isRawJsonEditingMode = false;
 	}
 
 	async function handleSubmit(e: Event) {
@@ -112,9 +130,9 @@
 
 		isLoading = true;
 
-    if (isJsonEditingMode && configJson !== '') {
-      task = JSON.parse(configJson);
-    }
+		if (isRawJsonEditingMode && configRawJson !== '') {
+			task = JSON.parse(configRawJson);
+		}
 
 		const res: Response = await fetch(`/api/task`, {
 			method: task?.id ? 'PATCH' : 'POST',
@@ -151,14 +169,14 @@
 		}
 	}
 
-  function handleJsonEditingModeChange(e: Event) {
-    if ((e.target as HTMLInputElement)?.checked) {
-      const {createdAt, updatedAt, stoppedAt, executedAt, ...rest} =   {...task};
-      configJson = JSON.stringify(rest, null, '\t');
-    } else {
-      task = JSON.parse(configJson);
-    }
-  }
+	function handleJsonEditingModeChange(e: Event) {
+		if ((e.target as HTMLInputElement)?.checked) {
+			const { createdAt, updatedAt, stoppedAt, executedAt, ...rest } = { ...task };
+			configRawJson = JSON.stringify(rest, null, '\t');
+		} else {
+			task = JSON.parse(configRawJson);
+		}
+	}
 </script>
 
 <Modal
@@ -174,11 +192,15 @@
 >
 	<Loading active={isLoading} />
 
-	<Toggle labelText="Enable Raw JSON Editing Mode" bind:toggled={isJsonEditingMode} on:change={handleJsonEditingModeChange}/>
+	<Toggle
+		labelText="Enable Raw JSON Editing Mode"
+		bind:toggled={isRawJsonEditingMode}
+		on:change={handleJsonEditingModeChange}
+	/>
 	<hr />
 	{#if task}
-		{#if isJsonEditingMode}
-			<TextArea bind:value={configJson} />
+		{#if isRawJsonEditingMode}
+			<TextArea bind:value={configRawJson} />
 		{:else}
 			<FormGroup legendText="Task Name">
 				<TextInput bind:value={task.name} placeholder="Please input task name" />
@@ -194,13 +216,22 @@
 				</RadioButtonGroup>
 			</FormGroup>
 			<FormGroup legendText="Auto Run">
-				<Checkbox bind:checked={task.autoRun}/>
+				<Checkbox bind:checked={task.autoRun} />
 			</FormGroup>
 			<FormGroup legendText="Log Url">
 				<TextInput bind:value={task.logUrl} placeholder="Please input log url" />
 			</FormGroup>
-			<FormGroup legendText="Stream Web Hook">
-				<TextInput bind:value={task.streamWebhook} placeholder="Please input stream web hook" />
+			<FormGroup legendText={`Stream Webhook - ${task.streamWebhook}`}>
+				<Dropdown
+					bind:selectedId={selectedServerId}
+					items={task.type === TaskType.BUILD
+						? buildServers.map((e, i) => {
+								return { id: i + '', text: `Name: ${e.name}; Host:${e.host}; Port:${e.port}` };
+						  })
+						: deployServers.map((e, i) => {
+								return { id: i + '', text: `Name: ${e.name}; Host:${e.host}; Port:${e.port}` };
+						  })}
+				/>
 			</FormGroup>
 			<FormGroup legendText="Upstream Task Id">
 				<TextInput bind:value={task.upstreamTaskId} placeholder="Please input upstream task id" />
@@ -208,7 +239,10 @@
 			{#if taskModalReq && buildConfig}
 				<BuildConfigForm config={buildConfig} />
 			{:else if taskModalReq && deployConfig}
-				<DeployConfigForm config={deployConfig} />
+				<DeployConfigForm
+					config={deployConfig}
+					availNetworkList={Array.from(selectedServer?.networks ?? [])}
+				/>
 			{/if}
 		{/if}
 	{/if}

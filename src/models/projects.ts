@@ -1,4 +1,13 @@
+import type { CustomMap } from '$lib/types/customMap';
 import type { Member } from './member';
+
+export type Server = {
+  name: string;
+  host: string;
+  port: string;
+  networks?: CustomMap<string, string>;
+};
+
 
 export type Project = {
   id: string;
@@ -7,4 +16,6 @@ export type Project = {
 	name: string;
 	members: Member[];
   createdAt: number;
+  deployServers: Server[];
+  buildServers: Server[];
 };

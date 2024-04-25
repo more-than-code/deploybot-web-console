@@ -1,16 +1,29 @@
 <script lang="ts">
-	import { Button, FormGroup, TextArea, TextInput } from 'carbon-components-svelte';
+	import { Button, FormGroup, MultiSelect, TextArea, TextInput } from 'carbon-components-svelte';
 	import type { DeployConfig } from 'models/pipeline';
 	import { CustomMap } from '$lib/types/customMap';
 
 	export let config: DeployConfig;
+	export let availNetworkList: [string, string][];
 
 	let volumeMountList = Array.from(config.volumeMounts ?? new CustomMap<string, string>());
 	let fileList = Array.from(config.files ?? new CustomMap<string, string>());
 	let portList = Array.from(config.ports ?? new CustomMap<string, string>());
 	let networkList = Array.from(config.networks ?? new CustomMap<string, string>());
 	let envList = Array.from(config.env ?? []);
-	let restartPolicy = typeof config.restartPolicy === 'object' ? config.restartPolicy : { name: '' } ?? { name: '' };		
+	let restartPolicy =
+		typeof config.restartPolicy === 'object' ? config.restartPolicy : { name: '' } ?? { name: '' };
+	let selectedNetworkIds: string[] = (function () {
+		let ids: string[] = [];
+
+		for (let i = 0; i < availNetworkList.length; i++) {
+			if (networkList.find((e) => e[1] === availNetworkList[i][1]) !== undefined) {
+				ids.push(i + '');
+			}
+		}
+
+		return ids;
+	})();
 
 	$: {
 		config.env = envList.filter((e) => e !== '');
@@ -28,6 +41,13 @@
 		);
 
 		config.restartPolicy = restartPolicy;
+	}
+
+	$: {
+		networkList = [];
+		for (const id of selectedNetworkIds) {
+			networkList.push(availNetworkList[parseInt(id)]);
+		}
 	}
 
 	function handleAddEnv() {
@@ -65,14 +85,6 @@
 
 	function handleRemovePort(elem: string[]) {
 		portList = portList.filter((port) => port[0] !== elem[0]);
-	}
-
-	function handleAddNetwork() {
-		networkList = [...networkList, ['', '']];
-	}
-
-	function handleRemoveNetwork(elem: string[]) {
-		networkList = networkList.filter((network) => network[0] !== elem[0]);
 	}
 </script>
 
@@ -167,26 +179,18 @@
 	{/each}
 	<Button kind="tertiary" on:click={handleAddPort}>Add</Button>
 </FormGroup>
-<FormGroup legendText="Networks">
-	{#each networkList as elem}
-		<div class="env-item">
-			<TextInput
-				bind:value={elem[0]}
-				placeholder="Please input network name"
-				style="margin-right: 10px;"
-			/>
-			<TextInput
-				bind:value={elem[1]}
-				placeholder="Please input network ID"
-				style="margin-right: 10px;"
-			/>
-			<Button kind="danger-tertiary" size="small" on:click={() => handleRemoveNetwork(elem)}
-				>Remove
-			</Button>
-		</div>
-	{/each}
-	<Button kind="tertiary" on:click={handleAddNetwork}>Add</Button>
+
+<FormGroup legendText={`Networks - ${networkList.map((e) => e[0])}`}>
+	<MultiSelect
+		bind:selectedIds={selectedNetworkIds}
+		label="Select network(s)"
+		items={availNetworkList.map(([name, id], i) => ({
+			id: i + '',
+			text: `Name: ${name}; Id: ${id}`
+		}))}
+	/>
 </FormGroup>
+
 <FormGroup legendText="Command">
 	<TextInput bind:value={config.command} placeholder="Please input command" />
 </FormGroup>

@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { PageData } from './$types';
-	import type { DiskInfo, Network, Pipeline, Task } from 'models/pipeline';
+	import type { DiskInfo, Pipeline, Task } from 'models/pipeline';
 	import type { TaskDeleteReq, TaskModalReq } from 'models/task';
 	import { invalidateAll } from '$app/navigation';
 	import {
@@ -18,11 +18,17 @@
 	import dayjs from 'dayjs';
 	import utc from 'dayjs/plugin/utc';
 	import type { ItemResponse } from '../../models/response';
+
+	import type { Project, Server } from 'models/projects';
 	import { onMount } from 'svelte';
+	import { CustomMap } from '$lib/types/customMap';
 
 	dayjs.extend(utc);
 
 	export let data: PageData;
+	let deployServers: Server[] = [];
+	let buildServers: Server[] = [];
+
 	$: pipelines = data.pipelines ?? [];
 
 	let open = false;
@@ -35,8 +41,23 @@
 	let pipelineName = '';
 	let pipelineEnv = 'dev';
 
-	onMount(() => {
-		getNetwork();
+	onMount(async () => {
+		const res = await fetch('/api/project/' + data.pid, {
+			method: 'GET',
+			headers: {
+				Authorization: `Bearer ${data.accessToken}`
+			}
+		});
+
+		const prjRes: ItemResponse<Project> = JSON.parse(await res.text(), (key, value) => {
+			if (typeof value === 'object' && value !== null && ['networks'].includes(key)) {
+				return CustomMap.fromJSON(value);
+			}
+			return value;
+		});
+
+		deployServers = prjRes.payload.deployServers;
+		buildServers = prjRes.payload.buildServers;
 	});
 
 	async function runTask({
@@ -242,40 +263,6 @@
 		if (res.status !== 200) return;
 
 		window.location.reload();
-	};
-
-	const getNetwork = async () => {
-		const url = getBaseUrl();
-		if (!url) return;
-
-		const res: Response = await fetch(`${url}/networks`, {
-			method: 'GET',
-			headers: {
-				Authorization: `Bearer ${data.accessToken}`
-			}
-		});
-
-		if (res.status !== 200) return;
-
-		console.log(res);
-	};
-
-	const getBaseUrl = () => {
-		if (!pipelines || pipelines.length === 0) return undefined;
-
-		let task: Task | undefined;
-		pipelines.forEach((pl) => {
-			if (!pl.tasks || pl.tasks.length === 0) return undefined;
-
-			task = pl.tasks.find((t) => t.type === 'deploy');
-		});
-
-		if (!task) return undefined;
-
-		const url = task.streamWebhook?.replace('/streamWebhook', '');
-		if (!url) return undefined;
-
-		return url;
 	};
 </script>
 
@@ -484,7 +471,7 @@
 		<p>Confirm deletion of this task ?</p>
 	</Modal>
 
-	<TaskFormModal bind:open {taskModalReq} />
+	<TaskFormModal bind:open {taskModalReq} {deployServers} {buildServers} />
 </div>
 
 <style>

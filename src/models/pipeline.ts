@@ -75,8 +75,3 @@ export type Pipeline = {
   branchWatched: string;
   autoRun: boolean;
 };
-
-export type Network = {
-  id: string;
-  name: string;
-}
