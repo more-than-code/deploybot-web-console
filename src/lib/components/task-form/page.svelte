@@ -1,5 +1,6 @@
 <script lang="ts">
 	import {
+	Checkbox,
 		FormGroup,
 		Loading,
 		Modal,
@@ -173,7 +174,7 @@
 >
 	<Loading active={isLoading} />
 
-	<Toggle labelText="Enable JSON Editing Mode" bind:toggled={isJsonEditingMode} on:change={handleJsonEditingModeChange}/>
+	<Toggle labelText="Enable Raw JSON Editing Mode" bind:toggled={isJsonEditingMode} on:change={handleJsonEditingModeChange}/>
 	<hr />
 	{#if task}
 		{#if isJsonEditingMode}
@@ -193,7 +194,7 @@
 				</RadioButtonGroup>
 			</FormGroup>
 			<FormGroup legendText="Auto Run">
-				<Toggle hideLabel bind:toggled={task.autoRun} />
+				<Checkbox bind:checked={task.autoRun}/>
 			</FormGroup>
 			<FormGroup legendText="Log Url">
 				<TextInput bind:value={task.logUrl} placeholder="Please input log url" />

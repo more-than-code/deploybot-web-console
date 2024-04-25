@@ -34,10 +34,6 @@
 	let pipelineId = '';
 	let pipelineName = '';
 	let pipelineEnv = 'dev';
-	let openNetworkModal = false;
-	let openNetworkDeleteModal = false;
-	let networkName = '';
-	let network: Network;
 
 	onMount(() => {
 		getNetwork();
@@ -281,43 +277,6 @@
 
 		return url;
 	};
-
-	const handleSaveNetwork = async () => {
-		if (!networkName || networkName.trim().length === 0) return;
-
-		const url = getBaseUrl();
-		const res = await fetch(`${url}/network`, {
-			method: 'POST',
-			headers: {
-				Authorization: `Bearer ${data.accessToken}`
-			},
-			body: JSON.stringify({
-				name: networkName
-			})
-		});
-
-		if (res.status !== 200) return;
-
-		window.location.reload();
-	};
-
-	const handleDeleteNetwork = async () => {
-		const url = getBaseUrl();
-		if (!url) return;
-
-		if (!network) return;
-
-		const res = await fetch(`/${url}/network/${network.name}`, {
-			method: 'DELETE',
-			headers: {
-				Authorization: `Bearer ${data.accessToken}`
-			}
-		});
-
-		if (res.status !== 200) return;
-
-		window.location.reload();
-	};
 </script>
 
 <div class="pipeline-wrapper">
@@ -479,19 +438,6 @@
 		<Button style="margin-top: 20px;" on:click={(e) => handleOpenPipelineModal(e)}
 			>Add Pipeline</Button
 		>
-		<div class="network-group">
-			{#if !network}
-				<Button kind="tertiary" on:click={() => (openNetworkModal = true)}>Add Network</Button>
-			{:else}
-				<Button kind="danger-tertiary" on:click={() => (openNetworkDeleteModal = true)}
-					>Delete Network</Button
-				>
-				<div class="network-item">
-					<p>Id: {network.id}</p>
-					<p>Name: {network.name}</p>
-				</div>
-			{/if}
-		</div>
 	</div>
 
 	<Modal
@@ -509,21 +455,6 @@
 		</FormGroup>
 		<FormGroup legendText="Env">
 			<TextInput bind:value={pipelineEnv} placeholder="Please input pipeline env" />
-		</FormGroup>
-	</Modal>
-
-	<Modal
-		preventCloseOnClickOutside
-		shouldSubmitOnEnter={false}
-		bind:open={openNetworkModal}
-		modalHeading="Edit Network"
-		primaryButtonText="Save"
-		secondaryButtonText="Cancel"
-		on:click:button--secondary={() => (openNetworkModal = false)}
-		on:submit={handleSaveNetwork}
-	>
-		<FormGroup legendText="Name">
-			<TextInput bind:value={networkName} placeholder="Please input network name" />
 		</FormGroup>
 	</Modal>
 
@@ -553,19 +484,6 @@
 		<p>Confirm deletion of this task ?</p>
 	</Modal>
 
-	<Modal
-		danger
-		shouldSubmitOnEnter={false}
-		bind:open={openNetworkDeleteModal}
-		modalHeading="Delete Network"
-		primaryButtonText="Delete"
-		secondaryButtonText="Cancel"
-		on:click:button--secondary={() => (openNetworkDeleteModal = false)}
-		on:submit={handleDeleteNetwork}
-	>
-		<p>Confirm deletion of this network ?</p>
-	</Modal>
-
 	<TaskFormModal bind:open {taskModalReq} />
 </div>
 
@@ -588,15 +506,5 @@
 		margin-left: 10px;
 		display: flex;
 		flex-direction: column;
-	}
-
-	.network-group {
-		margin-top: 20px;
-		display: flex;
-		align-items: center;
-	}
-
-	.network-item {
-		margin-left: 10px;
 	}
 </style>
