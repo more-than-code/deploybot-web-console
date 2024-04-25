@@ -209,6 +209,20 @@
 		{#if isRawJsonEditingMode}
 			<TextArea bind:value={configRawJson} />
 		{:else}
+			<FormGroup legendText="Target Server">
+				<Dropdown
+					bind:selectedId={selectedServerId}
+					label="Select"
+					helperText={`Stream Webhook - ${task.streamWebhook}`}
+					items={task.type === TaskType.BUILD
+						? buildServers?.map((e, i) => {
+								return { id: i + '', text: `Name: ${e.name}; Host:${e.host}; Port:${e.port}` };
+						  })
+						: deployServers?.map((e, i) => {
+								return { id: i + '', text: `Name: ${e.name}; Host:${e.host}; Port:${e.port}` };
+						  })}
+				/>
+			</FormGroup>
 			<FormGroup legendText="Task Name">
 				<TextInput bind:value={task.name} placeholder="Please input task name" />
 			</FormGroup>
@@ -227,19 +241,6 @@
 			</FormGroup>
 			<FormGroup legendText="Log Url">
 				<TextInput bind:value={task.logUrl} placeholder="Please input log url" />
-			</FormGroup>
-			<FormGroup legendText={`Stream Webhook - ${task.streamWebhook}`}>
-				<Dropdown
-					bind:selectedId={selectedServerId}
-					label="Select server"				
-					items={task.type === TaskType.BUILD
-						? buildServers?.map((e, i) => {
-								return { id: i + '', text: `Name: ${e.name}; Host:${e.host}; Port:${e.port}` };
-						  })
-						: deployServers?.map((e, i) => {
-								return { id: i + '', text: `Name: ${e.name}; Host:${e.host}; Port:${e.port}` };
-						  })}
-				/>
 			</FormGroup>
 			<FormGroup legendText="Upstream Task Id">
 				<TextInput bind:value={task.upstreamTaskId} placeholder="Please input upstream task id" />
