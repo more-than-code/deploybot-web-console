@@ -36,35 +36,11 @@
 	let configRawJson: string;
 	let isLoading = false;
 	let isRawJsonEditingMode = false;
-	let selectedServerId = '0';
-	let selectedServer: Server;
+
+	$: selectedDeployServer = deployServers?.find((e) => task?.webhookHost === e.host);
 
 	$: {
 		taskModalReq && getTask();
-	}
-
-	$: {
-		if (task) {
-			const i = parseInt(selectedServerId);
-
-			if (task.type === TaskType.BUILD) {
-				if (i >= 0 && i < buildServers?.length) {
-					selectedServer = buildServers[i];
-				}
-			} else {
-				if (i >= 0 && i < deployServers?.length) {
-					selectedServer = deployServers[i];
-
-					task.logUrl = `https://${selectedServer.host}:${selectedServer.port}/serviceLogs?name=${
-						(task.config as DeployConfig).serviceName
-					}`;
-				}
-			}
-
-			if (selectedServer) {
-				task.streamWebhook = `https://${selectedServer.host}:${selectedServer.port}/streamWebhook`;
-			}
-		}
 	}
 
 	async function getTask() {
@@ -106,7 +82,12 @@
 			return value;
 		});
 
-		task = taskRes.payload.Task;
+		task = taskRes.payload.task;
+
+		if (!task) {
+			isLoading = false;
+			return;
+		}
 
 		if (task.type === '') {
 			task.type = task.name?.includes(TaskType.BUILD) ? TaskType.BUILD : TaskType.DEPLOY;
@@ -214,21 +195,29 @@
 			<TextArea bind:value={configRawJson} />
 		{:else}
 			<FormGroup legendText="Target Server">
-				<Dropdown
-					bind:selectedId={selectedServerId}
-					label="Select"
-					items={task.type === TaskType.BUILD
-						? buildServers?.map((e, i) => {
-								return { id: i + '', text: `Name: ${e.name}; Host:${e.host}; Port:${e.port}` };
-						  })
-						: deployServers?.map((e, i) => {
-								return { id: i + '', text: `Name: ${e.name}; Host:${e.host}; Port:${e.port}` };
-						  })}
-				/>
-				<div class="autogen-text">
-					<p>{`Stream Webhook: ${task.streamWebhook}`}</p>
-					<p>{`Log URL: ${task.logUrl}`}</p>
-				</div>
+				{#if task.type === TaskType.BUILD}
+					<Dropdown
+						bind:selectedId={task.webhookHost}
+						label="Select"
+						items={buildServers?.map((e, i) => {
+							return {
+								id: e.host,
+								text: `Name: ${e.name}; Host:${e.host}`
+							};
+						})}
+					/>
+				{:else}
+					<Dropdown
+						bind:selectedId={task.webhookHost}
+						label="Select"
+						items={deployServers?.map((e, i) => {
+							return {
+								id: e.host,
+								text: `Name: ${e.name}; Host:${e.host}`
+							};
+						})}
+					/>
+				{/if}
 			</FormGroup>
 			<FormGroup legendText="Task Name">
 				<TextInput bind:value={task.name} placeholder="Please input task name" />
@@ -254,20 +243,9 @@
 			{:else if taskModalReq && deployConfig}
 				<DeployConfigForm
 					config={deployConfig}
-					availNetworkList={Array.from(selectedServer?.networks ?? [])}
+					availNetworkList={Array.from(selectedDeployServer?.networks ?? [])}
 				/>
 			{/if}
 		{/if}
 	{/if}
 </Modal>
-
-<style>
-	.autogen-text {
-		margin: 5px 15px;
-		color: #888;
-	}
-
-	.autogen-text p {
-		font-size: 14px;
-	}
-</style>

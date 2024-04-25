@@ -4,7 +4,6 @@ import type { Member } from './member';
 export type Server = {
   name: string;
   host: string;
-  port: string;
   networks?: CustomMap<string, string>;
 };
 

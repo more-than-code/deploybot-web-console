@@ -20,8 +20,8 @@
 	import type { ItemResponse } from '../../models/response';
 
 	import type { Project, Server } from 'models/projects';
-	import { onMount } from 'svelte';
 	import { CustomMap } from '$lib/types/customMap';
+	import { onMount } from 'svelte';
 
 	dayjs.extend(utc);
 
@@ -63,13 +63,13 @@
 	async function runTask({
 		taskId,
 		pipelineId,
-		streamWebhook
+		webhookHost
 	}: {
 		taskId: string;
 		pipelineId: string;
-		streamWebhook: string;
+		webhookHost: string;
 	}) {
-		await fetch(streamWebhook, {
+		await fetch(`https://${webhookHost}/streamWebhook`, {
 			method: 'POST',
 			mode: 'cors',
 			body: JSON.stringify({
@@ -146,10 +146,9 @@
 		const task = pl.tasks.find(
 			(task: Task) => task.name?.indexOf('build') !== -1 || task.type === 'build'
 		);
-		if (!task || !task.streamWebhook || task.streamWebhook.length === 0) return;
+		if (!task || !task.webhookHost || task.webhookHost.length === 0) return;
 
-		const url = task.streamWebhook.replace('/streamWebhook', '');
-		const res = await fetch(`${url}/diskInfo?path=/var/lib/docker`, {
+		const res = await fetch(`https://${task.webhookHost}/diskInfo?path=/var/lib/docker`, {
 			method: 'GET'
 		});
 
@@ -165,11 +164,10 @@
 		pipelines = [...pipelines];
 	}
 
-	async function handleClearCache(streamWebhook: string) {
-		if (!streamWebhook || streamWebhook.length === 0) return;
+	async function handleClearCache(webhookHost: string) {
+		if (!webhookHost || webhookHost.length === 0) return;
 
-		const url = streamWebhook.replace('/streamWebhook', '');
-		const res = await fetch(`${url}/builderCache`, {
+		const res = await fetch(`https://${webhookHost}/builderCache`, {
 			method: 'DELETE',
 			mode: 'cors'
 		});
@@ -285,20 +283,25 @@
 			{#if cell.key === 'actions'}
 				{#if row.tasks?.length > 0}
 					{#each row.tasks as t}
-						<Button
-							size="small"
-							style="margin: 5px 0;"
-							disabled={row.status === 'Busy'}
-							kind={t?.type === 'build' ? 'primary' : 'secondary'}
-							on:click={() =>
-								runTask({ taskId: t.id, pipelineId: row.id, streamWebhook: t.streamWebhook })}
-						>
-							{t.name.toUpperCase()}
-						</Button>
+						{#if t.webhookHost}
+							<Button
+								size="small"
+								style="margin: 5px 0;"
+								disabled={row.status === 'Busy'}
+								kind={t?.type === 'build' ? 'primary' : 'secondary'}
+								on:click={() =>
+									runTask({ taskId: t.id, pipelineId: row.id, webhookHost: t.webhookHost })}
+							>
+								{t.name.toUpperCase()}
+							</Button>
+							<Button
+								size="small"
+								style="margin: 5px 0;"
+								kind="tertiary"
+								on:click={() => showLog(row)}>LOG {t.name.toUpperCase()}</Button
+							>
+						{/if}
 					{/each}
-					<Button size="small" style="margin: 5px 0;" kind="tertiary" on:click={() => showLog(row)}
-						>LOG</Button
-					>
 				{/if}
 			{:else if cell.key === 'labels'}
 				{#if row.labels}
@@ -356,7 +359,7 @@
 										size="small"
 										disabled={t.status === 'InProgress'}
 										on:click={() =>
-											runTask({ taskId: t.id, pipelineId: row.id, streamWebhook: t.streamWebhook })}
+											runTask({ taskId: t.id, pipelineId: row.id, webhookHost: t.webhookHost })}
 										>RUN</Button
 									>
 									<Button
@@ -391,7 +394,7 @@
 									<Button
 										size="small"
 										kind="danger-tertiary"
-										on:click={() => handleClearCache(t.streamWebhook)}
+										on:click={() => handleClearCache(t.webhookHost)}
 										>CLEAR CACHE
 									</Button>
 								</li>
@@ -399,7 +402,7 @@
 							<ul>
 								<li>ID: {t.id}</li>
 								<li>Upstream task ID: {t.upstreamTaskId}</li>
-								<li>Stream webhook: {t.streamWebhook}</li>
+								<li>Webhook Host: {t.webhookHost}</li>
 								<li>Auto run: {t.autoRun}</li>
 								<li>Executed at: {localeDate(t.executedAt)}</li>
 								<li>Stopped at: {localeDate(t.stoppedAt)}</li>

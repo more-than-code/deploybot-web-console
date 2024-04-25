@@ -7,7 +7,7 @@ export type TaskModalReq = {
 }
 
 export type TaskPayload = {
-  Task: Task
+  task: Task
 }
 
 export type TaskDeleteReq = {

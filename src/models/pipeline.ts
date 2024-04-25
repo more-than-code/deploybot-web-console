@@ -8,6 +8,7 @@ export type BuildConfig = {
   repoUrl?: string;
   repoName?: string;
   repoBranch?: string;
+  serviceName?: string;
 };
 
 export type FileMountConfig = {
@@ -44,9 +45,9 @@ export type Task = {
   scheduledAt?: number;
   status?: string;
   upstreamTaskId?: string;
-  streamWebhook?: string;
+  webhookHost?: string;
   logUrl?: string;
-  config?: BuildConfig | DeployConfig | undefined;
+  config?: BuildConfig | DeployConfig;
   remarks?: string;
   autoRun?: boolean;
   timeout?: number;
