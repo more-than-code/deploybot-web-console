@@ -43,6 +43,14 @@
 		taskModalReq && getTask();
 	}
 
+	$: {
+		if (task) {
+			if (task.config) {
+				task.logUrl = `https://${task.webhookHost}/serviceLogs?name=${task.config.serviceName}`;
+			}
+		}
+	}
+
 	async function getTask() {
 		if (!taskModalReq || isLoading) return;
 

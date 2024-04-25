@@ -83,20 +83,6 @@
 		await invalidateAll();
 	}
 
-	function showLog(pl: Pipeline | DataTableRow) {
-		const tasks = pl.tasks;
-		if (tasks.length === 0) {
-			return;
-		}
-
-		const currentTask = tasks.find((task: any) => task.logUrl && task.logUrl.length > 0);
-		if (!currentTask) {
-			return;
-		}
-
-		window.open(currentTask.logUrl, '_blank');
-	}
-
 	function localeDate(date: string) {
 		return dayjs.utc(date).local().format('YYYY-MM-DD HH:mm:ss');
 	}
@@ -294,11 +280,14 @@
 							>
 								{t.name.toUpperCase()}
 							</Button>
+						{/if}
+						{#if t.logUrl}
 							<Button
 								size="small"
 								style="margin: 5px 0;"
 								kind="tertiary"
-								on:click={() => showLog(row)}>LOG {t.name.toUpperCase()}</Button
+								on:click={() => window.open(t.logUrl, '_blank')}
+								>LOG {t.config?.serviceName?.toUpperCase()}</Button
 							>
 						{/if}
 					{/each}
