@@ -11,7 +11,7 @@
 		TextInput,
 		Toggle
 	} from 'carbon-components-svelte';
-	import type { BuildConfig, DeployConfig, Task } from 'models/pipeline';
+	import type { Task } from 'models/pipeline';
 	import type { TaskModalReq, TaskPayload } from 'models/task';
 	import type { ItemResponse } from 'models/response';
 	import { transformCamelCase } from '$lib/shared/utils/utils';
@@ -31,8 +31,6 @@
 	export let deployServers: Server[];
 
 	let task: Task | undefined;
-	let buildConfig: BuildConfig | undefined;
-	let deployConfig: DeployConfig | undefined;
 	let configRawJson: string;
 	let isLoading = false;
 	let isRawJsonEditingMode = false;
@@ -45,7 +43,7 @@
 
 	$: {
 		if (task) {
-			if (task.config) {
+			if (task.webhookHost && task.config?.serviceName) {
 				task.logUrl = `https://${task.webhookHost}/serviceLogs?name=${task.config.serviceName}`;
 			}
 		}
@@ -59,7 +57,6 @@
 				type: TaskType.BUILD
 			};
 
-			handleTypeChange(task.type);
 			return;
 		}
 
@@ -103,12 +100,11 @@
 
 		if (task.type.toLowerCase() === TaskType.BUILD) {
 			task.type = TaskType.BUILD;
-			buildConfig = transformCamelCase(task.config as BuildConfig);
 		} else {
 			task.type = TaskType.DEPLOY;
-			deployConfig = deployConfig ?? (task.config as DeployConfig);
-			deployConfig = transformCamelCase(deployConfig);
 		}
+
+		task.config = transformCamelCase(task.config);
 
 		isLoading = false;
 	}
@@ -116,8 +112,6 @@
 	function handleCancel() {
 		open = false;
 		taskModalReq = undefined;
-		buildConfig = undefined;
-		deployConfig = undefined;
 		task = undefined;
 		configRawJson = '';
 		isRawJsonEditingMode = false;
@@ -142,10 +136,7 @@
 			body: JSON.stringify({
 				id: task?.id,
 				pipelineId: taskModalReq.pipelineId,
-				task: {
-					...task,
-					config: task?.type === TaskType.BUILD ? buildConfig : deployConfig
-				}
+				task
 			})
 		});
 
@@ -157,24 +148,21 @@
 		window.location.reload();
 	}
 
-	function handleTypeChange(type: string) {
-		if (!task) return;
-
-		if (type === TaskType.BUILD) {
-			deployConfig = undefined;
-			buildConfig = {};
-		} else {
-			buildConfig = undefined;
-			deployConfig = {};
-		}
-	}
-
 	function handleJsonEditingModeChange(e: Event) {
 		if ((e.target as HTMLInputElement)?.checked) {
 			const { createdAt, updatedAt, stoppedAt, executedAt, ...rest } = { ...task };
 			configRawJson = JSON.stringify(rest, null, '\t');
 		} else {
-			task = JSON.parse(configRawJson);
+			task = JSON.parse(configRawJson, (key, value) => {
+				if (
+					typeof value === 'object' &&
+					value !== null &&
+					['args', 'volumeMounts', 'files', 'ports', 'networks'].includes(key)
+				) {
+					return CustomMap.fromJSON(value);
+				}
+				return value;
+			});
 		}
 	}
 </script>
@@ -234,7 +222,9 @@
 				<RadioButtonGroup
 					disabled={!!task.id}
 					bind:selected={task.type}
-					on:change={(e) => handleTypeChange(e.detail)}
+					on:change={() => {
+						if (task) task.config = {};
+					}}
 				>
 					<RadioButton value="build" labelText="Build" />
 					<RadioButton value="deploy" labelText="Deploy" />
@@ -246,11 +236,11 @@
 			<FormGroup legendText="Upstream Task Id">
 				<TextInput bind:value={task.upstreamTaskId} placeholder="Please input upstream task id" />
 			</FormGroup>
-			{#if taskModalReq && buildConfig}
-				<BuildConfigForm config={buildConfig} />
-			{:else if taskModalReq && deployConfig}
+			{#if task.type === TaskType.BUILD}
+				<BuildConfigForm config={task.config ?? {}} />
+			{:else}
 				<DeployConfigForm
-					config={deployConfig}
+					config={task.config ?? {}}
 					availNetworkList={Array.from(selectedDeployServer?.networks ?? [])}
 				/>
 			{/if}
