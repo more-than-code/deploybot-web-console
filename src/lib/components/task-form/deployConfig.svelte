@@ -10,6 +10,7 @@
 	let fileList = Array.from(config.files ?? new CustomMap<string, string>());
 	let portList = Array.from(config.ports ?? new CustomMap<string, string>());
 	let envList = Array.from(config.env ?? []);
+	let linkList = Array.from(config.links ?? []);
 	let restartPolicy =
 		typeof config.restartPolicy === 'object' ? config.restartPolicy : { name: '' } ?? { name: '' };
 	let selectedNetworkNameIds: string[] = Array.from(
@@ -18,6 +19,7 @@
 
 	$: {
 		config.env = envList.filter((e) => e !== '');
+		config.links = linkList.filter((e) => e !== '');
 
 		config.volumeMounts = new CustomMap<string, string>(
 			volumeMountList.map(([key, value]) => [key, value])
@@ -51,6 +53,19 @@
 
 		envList.splice(i, 1);
 		envList = envList;
+	}
+
+	function handleAddLink() {
+		if (!config) return;
+
+		linkList = [...linkList, ''];
+	}
+
+	function handleRemoveLink(i: number) {
+		if (!config) return;
+
+		linkList.splice(i, 1);
+		linkList = linkList;
 	}
 
 	function handleAddFile() {
@@ -184,6 +199,22 @@
 
 <FormGroup legendText="Command">
 	<TextInput bind:value={config.command} placeholder="Please input command" />
+</FormGroup>
+
+<FormGroup legendText="Links">
+	{#each linkList as env, i}
+		<div class="env-item">
+			<TextInput
+				bind:value={env}
+				placeholder="Please input env,ex: key:value"
+				style="margin-right: 10px;"
+			/>
+			<Button kind="danger-tertiary" size="small" on:click={() => handleRemoveLink(i)}
+				>Remove
+			</Button>
+		</div>
+	{/each}
+	<Button kind="tertiary" on:click={handleAddLink}>Add</Button>
 </FormGroup>
 
 <style>
