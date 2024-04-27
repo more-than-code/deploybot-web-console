@@ -11,7 +11,6 @@ export const load = (async ({ fetch, cookies }) => {
 
   if (res.status == 200) {
     const projRes: ItemsResponse<Project> = await res.json().catch((e) => console.error)
-
     return {
       projects: projRes.payload.items,
       accessToken

@@ -188,7 +188,7 @@
 	<hr />
 	{#if task}
 		{#if isRawJsonEditingMode}
-			<TextArea bind:value={configRawJson} />
+			<TextArea bind:value={configRawJson} rows={50} />
 		{:else}
 			<FormGroup legendText="Webhook Host">
 				{#if task.type === TaskType.BUILD}

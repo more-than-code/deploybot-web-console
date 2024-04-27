@@ -1,44 +1,156 @@
 <script lang="ts">
   import type { PageData } from './$types'
-  import { Button, Modal, TextInput } from 'carbon-components-svelte'
-  import type { Project } from '../../models/projects'
+  import { Button, FormGroup, Modal, Select, SelectItem, TextInput } from 'carbon-components-svelte'
+  import type { Network, Project, Server } from '../../models/projects'
+  import { CustomMap } from '$lib/types/customMap'
+  import type { ItemResponse } from '../../models/response'
 
   export let data: PageData
+
+  const DEFAULT_SERVER: Server = {
+    name: '',
+    host: '',
+    allNetworks: []
+  }
+
+  const DEFAULT_DEPLOY_SERVER: Server = {
+    ...DEFAULT_SERVER,
+    networks: new CustomMap<string, string>()
+  }
+
+  const DEFAULT_PROJECT: Project = {
+    name: '',
+    deployServers: [{ ...DEFAULT_DEPLOY_SERVER }],
+    buildServers: [{ ...DEFAULT_SERVER }]
+  }
 
   const projects = data.projects ?? []
   let openEditModal = false
   let openDeleteModal = false
-  let projectName = ''
-  let projectId = ''
+  let project: Project = { ...DEFAULT_PROJECT }
 
-  const handleGoPipeline = (id: string) => {
+  const handleGoPipeline = (id: string | undefined) => {
+    if (!id) return
+
     window.location.href = `/pipelines?pid=${id}`
   }
 
-  const handleOpenEditModal = (e: Event, project: Project | undefined = undefined) => {
+  const handleOpenEditModal = (e: Event, proj: Project | undefined = undefined) => {
     e.stopPropagation()
 
-    if (project) {
-      projectName = project.name
-      projectId = project.id
+    if (proj) {
+      project = { ...proj }
+
+      if (!proj.buildServers || proj.buildServers.length === 0) {
+        project.buildServers = [{ ...DEFAULT_SERVER }]
+      }
+
+      if (!proj.deployServers || proj.deployServers.length === 0) {
+        project.deployServers = [{ ...DEFAULT_SERVER }]
+      } else {
+        project.deployServers.forEach((server, i) => {
+          loadNetworks(server, i)
+        })
+      }
     } else {
-      projectName = ''
-      projectId = ''
+      project = { ...DEFAULT_PROJECT }
     }
 
     openEditModal = true
   }
 
-  const handleOpenDeleteModal = (e: Event, id: string) => {
+  const loadNetworks = async (server: Server, index: number) => {
+    if (!server || !server.host || server.host.length === 0) return
+
+    const host = server.host
+    const res = await fetch(`https://${host}/networks`, {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${data.accessToken}`
+      }
+    })
+
+    const networkRes: ItemResponse<Network[]> = await res.json().catch(e => console.error(e))
+    const networks = networkRes.payload
+
+    if (!networks || networks.length === 0) return
+
+    const entries = Object.entries(server.networks)
+
+    project.deployServers[index] = {
+      ...server,
+      currentNetwork: entries && entries.length > 0 ? `${entries[0][0]}:${entries[0][1]}` : '',
+      allNetworks: networks
+    }
+  }
+
+  const handleAddBuildServer = () => {
+    project.buildServers = [...project.buildServers, { ...DEFAULT_SERVER }]
+  }
+
+  const handleAddDeployServer = () => {
+    project.deployServers = [...project.deployServers, { ...DEFAULT_DEPLOY_SERVER }]
+  }
+
+  const handleRemoveBuildServer = (index: number) => {
+    if (project.buildServers.length <= 1) return
+
+    project.buildServers = project.buildServers.filter((_, i) => i !== index)
+  }
+
+  const handleRemoveDeployServer = (index: number) => {
+    if (project.deployServers.length <= 1) return
+
+    project.deployServers = project.deployServers.filter((_, i) => i !== index)
+  }
+
+  const handleSelectNetwork = (e: Event, index: number) => {
+    const target = e.target as HTMLSelectElement
+    const selectedNetwork = target.value
+
+    const [name, id] = selectedNetwork.split(':')
+    project.deployServers[index].networks = new CustomMap([[name, id]])
+  }
+
+  const handleRemoveNetwork = (index: number) => {
+    project.deployServers[index].currentNetwork = ''
+    project.deployServers[index].networks = new CustomMap<string, string>()
+  }
+
+  const handleAddNetwork = async (server: Server, index: number) => {
+    if (!server || !server.name || !server.host || server.host.length === 0) return
+
+    const host = server.host
+    const res = await fetch(`https://${host}/network`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${data.accessToken}`
+      },
+      body: JSON.stringify({ name: `${server.name.toLowerCase()}-network` })
+    })
+
+    const networkRes: ItemResponse<Network> = await res.json().catch(e => console.error(e))
+    const network = networkRes.payload
+
+    const networks = project.deployServers[index].allNetworks ?? []
+    project.deployServers[index].allNetworks = [...networks, network]
+
+    alert('Network created successfully')
+  }
+
+  const handleOpenDeleteModal = (e: Event, proj: Project | undefined) => {
+    if (!proj) return
+
     e.stopPropagation()
 
-    projectId = id
+    project = proj
     openDeleteModal = true
   }
 
   const handleSave = async () => {
-    if (projectName.trim().length === 0) return
+    if (project.name.trim().length === 0) return
 
+    let projectId = project.id
     let res: Response
     if (projectId) {
       res = await fetch(`/api/project/${projectId}`, {
@@ -46,9 +158,7 @@
         headers: {
           Authorization: `Bearer ${data.accessToken}`
         },
-        body: JSON.stringify({
-          name: projectName
-        })
+        body: JSON.stringify(project)
       })
     } else {
       res = await fetch('/api/project', {
@@ -56,10 +166,7 @@
         headers: {
           Authorization: `Bearer ${data.accessToken}`
         },
-        body: JSON.stringify({
-          name: projectName,
-          id: projectId
-        })
+        body: JSON.stringify(project)
       })
     }
 
@@ -69,9 +176,9 @@
   }
 
   const handleDelete = async () => {
-    if (!projectId) return
+    if (!project) return
 
-    const res: Response = await fetch(`/api/project/${projectId}`, {
+    const res: Response = await fetch(`/api/project/${project.id}`, {
       method: 'DELETE',
       headers: {
         Authorization: `Bearer ${data.accessToken}`
@@ -94,7 +201,7 @@
       <p class="project-title">{proj.name}</p>
       <div class="btn-group">
         <Button size="small" kind="tertiary" on:click={(e) => handleOpenEditModal(e, proj)}>EDIT</Button>
-        <Button size="small" kind="danger-tertiary" on:click={(e) => handleOpenDeleteModal(e, proj.id)}>REMOVE</Button>
+        <Button size="small" kind="danger-tertiary" on:click={(e) => handleOpenDeleteModal(e, proj)}>REMOVE</Button>
       </div>
     </div>
   {/each}
@@ -110,7 +217,64 @@
     on:click:button--secondary={() => (openEditModal = false)}
     on:submit={handleSave}
   >
-    <TextInput bind:value={projectName} placeholder="Please input project name"/>
+    <FormGroup legendText="Name">
+      <TextInput bind:value={project.name} placeholder="Please input project name"/>
+    </FormGroup>
+    <FormGroup legendText="Build Servers">
+      {#each project.buildServers as server, i}
+        <FormGroup legendText={`Server ${i + 1}`} style="margin-bottom: 0;">
+          <div class="server-item-row">
+            <TextInput bind:value={server.name} placeholder="Please input server name"/>
+            <Button kind="danger-tertiary" style="margin-left: 10px;" size="small"
+                    on:click={() => handleRemoveBuildServer(i)}>
+              Remove
+            </Button>
+          </div>
+          <div class="server-item-row">
+            <TextInput bind:value={server.host} placeholder="Please input server host"/>
+          </div>
+        </FormGroup>
+      {/each}
+      <Button kind="tertiary" on:click={handleAddBuildServer}>Add Build Server</Button>
+    </FormGroup>
+    <FormGroup legendText="Deploy Servers">
+      {#each project.deployServers as server, i}
+        <FormGroup legendText={`Server ${i + 1}`} style="margin-bottom: 0;">
+          <div class="server-item-row">
+            <TextInput bind:value={server.name} placeholder="Please input server name"/>
+            <Button kind="danger-tertiary" style="margin-left: 10px;" size="small"
+                    on:click={() => handleRemoveDeployServer(i)}>
+              Remove
+            </Button>
+          </div>
+          <div class="server-item-row">
+            <TextInput bind:value={server.host} placeholder="Please input server host"/>
+          </div>
+          <div class="server-item-row">
+            {#if server.currentNetwork}
+              <TextInput bind:value={server.currentNetwork} disabled/>
+              <Button kind="danger-tertiary" style="margin-left: 10px;" size="small"
+                      on:click={()=>handleRemoveNetwork(i)}>
+                Remove
+              </Button>
+            {:else}
+              {#if server.allNetworks}
+                <Select on:change={(e) => handleSelectNetwork(e, i)}>
+                  {#each server.allNetworks as network}
+                    <SelectItem value="{`${network.name}:${network.id}`}" text="{`${network.name}:${network.id}`}"/>
+                  {/each}
+                </Select>
+              {/if}
+              <Button kind="tertiary" style="margin-left: 10px;" size="small"
+                      on:click={()=>handleAddNetwork(server,i)}>
+                Add Network
+              </Button>
+            {/if}
+          </div>
+        </FormGroup>
+      {/each}
+      <Button kind="tertiary" on:click={handleAddDeployServer}>Add Deploy Server</Button>
+    </FormGroup>
   </Modal>
 
   <Modal
@@ -161,5 +325,10 @@
   .project-title {
     font-weight: 700;
     margin-bottom: 20px;
+  }
+
+  .server-item-row {
+    display: flex;
+    margin-bottom: 10px;
   }
 </style>
