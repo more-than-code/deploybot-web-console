@@ -75,7 +75,7 @@
 
     if (!networks || networks.length === 0) return
 
-    const entries = Object.entries(server.networks)
+    const entries = server.networks ? Object.entries(server.networks) : []
 
     project.deployServers[index] = {
       ...server,
