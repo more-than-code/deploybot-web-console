@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { transformCamelCase } from '$lib/shared/utils/utils';
+	import { CustomMap } from '$lib/types/customMap';
 	import {
 		Checkbox,
 		Dropdown,
@@ -12,13 +14,11 @@
 		Toggle
 	} from 'carbon-components-svelte';
 	import type { Task } from 'models/pipeline';
-	import type { TaskModalReq, TaskPayload } from 'models/task';
+	import type { Server } from 'models/projects';
 	import type { ItemResponse } from 'models/response';
-	import { transformCamelCase } from '$lib/shared/utils/utils';
-	import { CustomMap } from '$lib/types/customMap';
+	import type { TaskModalReq, TaskPayload } from 'models/task';
 	import BuildConfigForm from './buildConfig.svelte';
 	import DeployConfigForm from './deployConfig.svelte';
-	import type { Server } from 'models/projects';
 
 	enum TaskType {
 		BUILD = 'build',
@@ -42,9 +42,9 @@
 	}
 
 	$: {
-		if (task) {
-			if (task.webhookHost && task.config?.serviceName) {
-				task.logUrl = `https://${task.webhookHost}/serviceLogs?name=${task.config.serviceName}`;
+		if (task && task.webhookHost && task.config?.serviceName) {
+			if (!task.logUrl || task.logUrl.indexOf('showStdout=true') === -1) {
+				task.logUrl = `https://${task.webhookHost}/serviceLogs?name=${task.config.serviceName}&showStdout=true&showStderr=true&tail=1000`;
 			}
 		}
 	}
@@ -236,6 +236,11 @@
 			<FormGroup legendText="Upstream Task Id">
 				<TextInput bind:value={task.upstreamTaskId} placeholder="Please input upstream task id" />
 			</FormGroup>
+			{#if task.id}
+				<FormGroup legendText="Log Url">
+					<TextInput bind:value={task.logUrl} placeholder="Please input log url" />
+				</FormGroup>
+			{/if}
 			{#if task.type === TaskType.BUILD}
 				<BuildConfigForm config={task.config ?? {}} />
 			{:else}

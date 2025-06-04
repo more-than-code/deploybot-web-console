@@ -1,7 +1,7 @@
 <script lang="ts">
+	import { CustomMap } from '$lib/types/customMap';
 	import { Button, FormGroup, MultiSelect, TextArea, TextInput } from 'carbon-components-svelte';
 	import type { DeployConfig } from 'models/pipeline';
-	import { CustomMap } from '$lib/types/customMap';
 
 	export let config: DeployConfig;
 	export let availNetworkList: [string, string][];
@@ -12,7 +12,7 @@
 	let envList = Array.from(config.env ?? []);
 	let linkList = Array.from(config.links ?? []);
 	let restartPolicy =
-		typeof config.restartPolicy === 'object' ? config.restartPolicy : { name: '' } ?? { name: '' };
+		typeof config.restartPolicy === 'object' ? config.restartPolicy : { name: '' };
 	let selectedNetworkNameIds: string[] = Array.from(
 		config.networks ?? new CustomMap<string, string>()
 	).map(([name, id]) => `${name}:${id}`);
