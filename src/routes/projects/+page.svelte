@@ -203,8 +203,10 @@
 	{#each projects as proj}
 		<div
 			class="project-item"
+			role="button"
+			tabindex="0"
 			on:click={() => handleGoPipeline(proj.id)}
-			on:keydown={(e) => e.key === 'Enter' && handleGoPipeline(proj.id)}
+			on:keydown={(e) => (e.key === 'Enter' || e.key === ' ' || e.key === 'Spacebar' || e.key === 'Space') && handleGoPipeline(proj.id)}
 		>
 			<p class="project-title">{proj.name}</p>
 			<div class="btn-group">
@@ -347,10 +349,6 @@
 		border: 1px solid #ccc;
 		width: 300px;
 		cursor: pointer;
-		transition: all 0.2s;
-	}
-
-	.project-item:hover {
 		background-color: #ccc;
 	}
 

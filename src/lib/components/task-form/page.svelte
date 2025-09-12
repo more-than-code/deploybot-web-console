@@ -20,10 +20,7 @@
 	import BuildConfigForm from './buildConfig.svelte';
 	import DeployConfigForm from './deployConfig.svelte';
 
-	enum TaskType {
-		BUILD = 'build',
-		DEPLOY = 'deploy'
-	}
+	type TaskType = 'build' | 'deploy';
 
 	export let open = false;
 	export let taskModalReq: TaskModalReq | undefined;
@@ -37,6 +34,24 @@
 
 	$: selectedDeployServer = deployServers?.find((e) => task?.webhookHost === e.host);
 
+	$: selectedDeployNetworkEntries = (() => {
+		const networks = selectedDeployServer?.networks;
+		if (!networks) return [] as [string, string][];
+		// CustomMap instance
+		if (networks instanceof CustomMap) {
+			return Array.from(networks.entries()) as [string, string][];
+		}
+		// already an array of tuples
+		if (Array.isArray(networks)) {
+			return networks as [string, string][];
+		}
+		// plain object { key: value }
+		if (typeof networks === 'object') {
+			return Object.entries(networks as Record<string, string>);
+		}
+		return [] as [string, string][];
+	})();
+
 	$: {
 		taskModalReq && getTask();
 	}
@@ -49,12 +64,12 @@
 		}
 	}
 
-	async function getTask() {
+	const getTask = async () => {
 		if (!taskModalReq || isLoading) return;
 
 		if (!taskModalReq.id) {
 			task = {
-				type: TaskType.BUILD
+				type: 'build'
 			};
 
 			return;
@@ -95,29 +110,29 @@
 		}
 
 		if (task.type === '') {
-			task.type = task.name?.includes(TaskType.BUILD) ? TaskType.BUILD : TaskType.DEPLOY;
+			task.type = (task.name?.includes('build') ? 'build' : 'deploy') as TaskType;
 		}
 
-		if (task.type.toLowerCase() === TaskType.BUILD) {
-			task.type = TaskType.BUILD;
+		if (task.type.toLowerCase() === 'build') {
+			task.type = 'build';
 		} else {
-			task.type = TaskType.DEPLOY;
+			task.type = 'deploy';
 		}
 
-		task.config = transformCamelCase(task.config);
+		task.config = transformCamelCase(task.config ?? {});
 
 		isLoading = false;
-	}
+	};
 
-	function handleCancel() {
+	const handleCancel = () => {
 		open = false;
 		taskModalReq = undefined;
 		task = undefined;
 		configRawJson = '';
 		isRawJsonEditingMode = false;
-	}
+	};
 
-	async function handleSubmit(e: Event) {
+	const handleSubmit = async (e: Event) => {
 		e.preventDefault();
 
 		if (!taskModalReq || !task || isLoading) return;
@@ -146,9 +161,9 @@
 		}
 
 		window.location.reload();
-	}
+	};
 
-	function handleJsonEditingModeChange(e: Event) {
+	const handleJsonEditingModeChange = (e: Event) => {
 		if ((e.target as HTMLInputElement)?.checked) {
 			const { createdAt, updatedAt, stoppedAt, executedAt, ...rest } = { ...task };
 			configRawJson = JSON.stringify(rest, null, '\t');
@@ -164,7 +179,7 @@
 				return value;
 			});
 		}
-	}
+	};
 </script>
 
 <Modal
@@ -191,7 +206,7 @@
 			<TextArea bind:value={configRawJson} rows={50} />
 		{:else}
 			<FormGroup legendText="Webhook Host">
-				{#if task.type === TaskType.BUILD}
+				{#if task.type === 'build'}
 					<Dropdown
 						bind:selectedId={task.webhookHost}
 						label="Select"
@@ -241,12 +256,12 @@
 					<TextInput bind:value={task.logUrl} placeholder="Please input log url" />
 				</FormGroup>
 			{/if}
-			{#if task.type === TaskType.BUILD}
+			{#if task.type === "build"}
 				<BuildConfigForm config={task.config ?? {}} />
 			{:else}
 				<DeployConfigForm
 					config={task.config ?? {}}
-					availNetworkList={Array.from(selectedDeployServer?.networks ?? [])}
+					availNetworkList={selectedDeployNetworkEntries}
 				/>
 			{/if}
 		{/if}

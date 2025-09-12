@@ -1,24 +1,19 @@
 import { sveltekit } from '@sveltejs/kit/vite';
-import type { UserConfig } from 'vite';
+import { defineConfig } from 'vite';
 
-const config: UserConfig = {
+export default defineConfig({
 	plugins: [sveltekit()],
-	test: {
-		include: ['src/**/*.{test,spec}.{js,ts}']
-	},
 	server: {
 		proxy: {
 			'/api': {
 				target: 'https://console.deploybot.dev',
-				changeOrigin: true,
-			},
+				changeOrigin: true
+			}
 			// '/api': {
 			// 	target: 'http://localhost:8090/',
 			// 	changeOrigin: true,
 			// 	rewrite: path => path.replace(/^\/api/, '')
 			// }
-		},
-	},
-};
-
-export default config;
+		}
+	}
+});

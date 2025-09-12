@@ -21,12 +21,13 @@
 							<li class="userItem">
 								{#if u?.avatarUrl}
 									<img class="avatar" alt="avatar" src={u.avatarUrl} />
-									<span class="padding10" />
+									<span class="padding10"></span>
 								{/if}
 								<span> {u.name || '(NA)'}</span>
 							</li>
 							<div class="padding5"></div>
 						{/each}
+						<div class="padding5"></div>
 					</ul>
 				</li>
 				<li>
@@ -58,10 +59,5 @@
 	.padding10 {
 		width: 10px;
 		height: 10px;
-	}
-
-	.padding20 {
-		width: 20px;
-		height: 20px;
 	}
 </style>

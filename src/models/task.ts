@@ -1,16 +1,16 @@
-import type { Task } from 'models/pipeline'
+import type { Task } from 'models/pipeline';
 
 export type TaskModalReq = {
-  id?: string;
-  pipelineId: string;
-  accessToken: string;
-}
+	id?: string;
+	pipelineId: string;
+	accessToken: string;
+};
 
 export type TaskPayload = {
-  task: Task
-}
+	task: Task;
+};
 
 export type TaskDeleteReq = {
-  id: string;
-  pipelineId: string;
-}
+	id: string;
+	pipelineId: string;
+};

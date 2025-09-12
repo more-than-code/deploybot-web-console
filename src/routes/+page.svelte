@@ -7,10 +7,10 @@
 </script>
 
 {#if user?.avatarUrl}
-<img alt="avatar" src={user.avatarUrl} />
+	<img alt="avatar" src={user.avatarUrl} />
 {/if}
 
-<div>Hello {user?.name ?? "vsitor"}, welcome to DeployBot!</div>
+<div>Hello {user?.name ?? 'visitor'}, welcome to DeployBot!</div>
 
 {#if user}
 	<a href="/projects">View projects</a>

@@ -13,20 +13,21 @@ export const load = (async ({ fetch, params }) => {
 		return;
 	}
 
-	const projRes: ItemResponse<Project> = await res.json().catch((e) => console.error);
+	const projRes: ItemResponse<Project> = await res.json().catch(() => console.error);
 
 	const searchParams = new URLSearchParams();
 
-	for (const u of projRes.payload.members) {
+	const members = projRes?.payload?.members ?? [];
+	for (const u of members) {
 		searchParams.append('uid', u.userId);
 	}
 
 	res = await fetch('/api/users?' + searchParams);
-	let users: User[] = []
+	let users: User[] = [];
 
 	if (res.status == 200) {
-		const usersRes: ItemsResponse<User> = await res.json().catch((e) => console.error);
-		users = usersRes.payload.items
+		const usersRes: ItemsResponse<User> = await res.json().catch(() => console.error);
+		users = usersRes.payload.items;
 	}
 
 	return {

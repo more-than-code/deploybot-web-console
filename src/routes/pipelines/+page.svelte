@@ -13,7 +13,6 @@
 		Tag,
 		TextInput
 	} from 'carbon-components-svelte';
-	import type { DataTableRow } from 'carbon-components-svelte/types/DataTable/DataTable.svelte';
 	import TaskFormModal from '$lib/components/task-form/page.svelte';
 	import dayjs from 'dayjs';
 	import utc from 'dayjs/plugin/utc';
@@ -41,6 +40,17 @@
 	let pipelineName = '';
 	let pipelineEnv = 'dev';
 
+	const labelEntries = (
+		labels?: Map<string, string> | Record<string, string> | null
+	): [string, string][] => {
+		if (!labels) return [];
+		// If it's a Map or Map-like (has entries function)
+		if (typeof (labels as any).entries === 'function') return Array.from((labels as Map<string, string>).entries());
+		// If it's a plain object
+		if (typeof labels === 'object') return Object.entries(labels as Record<string, string>);
+		return [];
+	};
+
 	onMount(async () => {
 		const res = await fetch('/api/project/' + data.pid, {
 			method: 'GET',
@@ -60,15 +70,8 @@
 		buildServers = prjRes.payload.buildServers;
 	});
 
-	async function runTask({
-		taskId,
-		pipelineId,
-		webhookHost
-	}: {
-		taskId: string;
-		pipelineId: string;
-		webhookHost: string;
-	}) {
+	const runTask = async (opts: { taskId: string; pipelineId: string; webhookHost: string }) => {
+		const { taskId, pipelineId, webhookHost } = opts;
 		await fetch(`https://${webhookHost}/streamWebhook`, {
 			method: 'POST',
 			mode: 'cors',
@@ -81,13 +84,12 @@
 		});
 
 		await invalidateAll();
-	}
+	};
 
-	function localeDate(date: string) {
-		return dayjs.utc(date).local().format('YYYY-MM-DD HH:mm:ss');
-	}
+	const localeDate = (date: string) => dayjs.utc(date).local().format('YYYY-MM-DD HH:mm:ss');
 
-	function showTaskFormModal({ id, pipelineId }: { id?: string; pipelineId: string }) {
+	const showTaskFormModal = (opts: { id?: string; pipelineId: string }) => {
+		const { id, pipelineId } = opts;
 		taskModalReq = {
 			id,
 			pipelineId,
@@ -95,24 +97,19 @@
 		};
 
 		open = true;
-	}
+	};
 
-	function handleOpenDeleteTaskModal({
-		pipelineId,
-		taskId
-	}: {
-		pipelineId: string;
-		taskId: string;
-	}) {
+	const handleOpenDeleteTaskModal = (opts: { pipelineId: string; taskId: string }) => {
+		const { pipelineId, taskId } = opts;
 		taskDeleteReq = {
 			pipelineId,
 			id: taskId
 		};
 
 		openTaskDeleteModal = true;
-	}
+	};
 
-	async function handleDeleteTask() {
+	const handleDeleteTask = async () => {
 		const res: Response = await fetch('/api/task', {
 			method: 'DELETE',
 			headers: {
@@ -124,9 +121,9 @@
 		if (res.status !== 200) return;
 
 		window.location.reload();
-	}
+	};
 
-	async function getDiskInfo(pl: Pipeline | DataTableRow) {
+	const getDiskInfo = async (pl: Pipeline) => {
 		if (!pl || !pl.tasks) return;
 
 		const task = pl.tasks.find(
@@ -148,9 +145,9 @@
 		pl.tasks.splice(index, 1, task);
 
 		pipelines = [...pipelines];
-	}
+	};
 
-	async function handleClearCache(webhookHost: string) {
+	const handleClearCache = async (webhookHost: string) => {
 		if (!webhookHost || webhookHost.length === 0) return;
 
 		const res = await fetch(`https://${webhookHost}/builderCache`, {
@@ -163,18 +160,13 @@
 		}
 
 		window.location.reload();
-	}
+	};
 
-	const handleOpenPipelineModal = (
-		e: Event,
-		pipeline: Pipeline | DataTableRow | undefined = undefined
-	) => {
-		e.stopPropagation();
-
+	const handleOpenPipelineModal = (pipeline: Pipeline | undefined = undefined) => {
 		if (pipeline) {
 			pipelineId = pipeline.id;
 			pipelineName = pipeline.name;
-			pipelineEnv = pipeline.labels['env'] || 'dev';
+			pipelineEnv = pipeline.labels?.get('env') || 'dev';
 		} else {
 			pipelineId = '';
 			pipelineName = '';
@@ -227,9 +219,7 @@
 		window.location.reload();
 	};
 
-	const handleOpenPipelineDeleteModal = (e: Event, id: string) => {
-		e.stopPropagation();
-
+	const handleOpenPipelineDeleteModal = (id: string) => {
 		pipelineId = id;
 		openPipelineDeleteModal = true;
 	};
@@ -261,8 +251,8 @@
 			{ key: 'status', value: 'Status' },
 			{ key: 'labels', value: 'Labels' },
 			{ key: 'executedAt', value: 'Executed at' },
-			{ key: 'actions', value: 'Actions', width: '240px' }
-		]}
+			{ key: 'actions' as any, value: 'Actions', width: '240px' }
+		] as any}
 		rows={pipelines}
 	>
 		<svelte:fragment slot="cell" let:cell let:row>
@@ -276,9 +266,11 @@
 								disabled={row.status === 'Busy'}
 								kind={t?.type === 'build' ? 'primary' : 'secondary'}
 								on:click={() =>
+									t.id &&
+									t.webhookHost &&
 									runTask({ taskId: t.id, pipelineId: row.id, webhookHost: t.webhookHost })}
 							>
-								{t.name.toUpperCase()}
+								{t.name ? t.name.toUpperCase() : ''}
 							</Button>
 						{/if}
 						{#if t.logUrl}
@@ -294,8 +286,8 @@
 				{/if}
 			{:else if cell.key === 'labels'}
 				{#if row.labels}
-					{#each Object.keys(row.labels) as k}
-						<Tag type="blue">{`${k}:${row.labels[k]}`}</Tag>
+					{#each labelEntries(row.labels) as [k, v]}
+						<Tag type="blue">{`${k}:${v}`}</Tag>
 					{/each}
 				{/if}
 			{:else if cell.key === 'executedAt'}
@@ -308,8 +300,8 @@
 				<li>Repo watched: {row.repoWatched}</li>
 				<li>Branch watched: {row.branchWatched}</li>
 				<li>Auto run: {row.autoRun}</li>
-				<li>Executed at: {localeDate(row.executedAt)}</li>
-				<li>Stopped at: {localeDate(row.stoppedAt)}</li>
+				<li>Executed at: {localeDate(String(row.executedAt))}</li>
+				<li>Stopped at: {localeDate(String(row.stoppedAt))}</li>
 				<li>Arguments: {row.arguments}</li>
 			</ul>
 			<Button
@@ -323,7 +315,10 @@
 				size="small"
 				kind="tertiary"
 				style="margin: 10px 0;"
-				on:click={(e) => handleOpenPipelineModal(e, row)}
+				on:click={(e) => {
+					(e as Event).stopPropagation();
+					handleOpenPipelineModal(row);
+				}}
 			>
 				EDIT PIPELINE
 			</Button>
@@ -331,7 +326,10 @@
 				size="small"
 				kind="danger-tertiary"
 				style="margin: 10px 0;"
-				on:click={(e) => handleOpenPipelineDeleteModal(e, row.id)}
+				on:click={(e) => {
+					(e as Event).stopPropagation();
+					handleOpenPipelineDeleteModal(row.id);
+				}}
 			>
 				REMOVE PIPELINE
 			</Button>
@@ -348,6 +346,8 @@
 										size="small"
 										disabled={t.status === 'InProgress'}
 										on:click={() =>
+											t.id &&
+											t.webhookHost &&
 											runTask({ taskId: t.id, pipelineId: row.id, webhookHost: t.webhookHost })}
 										>RUN</Button
 									>
@@ -363,7 +363,8 @@
 									<Button
 										size="small"
 										kind="danger-tertiary"
-										on:click={() => handleOpenDeleteTaskModal({ pipelineId: row.id, taskId: t.id })}
+										on:click={() =>
+											t.id && handleOpenDeleteTaskModal({ pipelineId: row.id, taskId: t.id })}
 										>DELETE</Button
 									>
 								</span>
@@ -383,7 +384,7 @@
 									<Button
 										size="small"
 										kind="danger-tertiary"
-										on:click={() => handleClearCache(t.webhookHost)}
+										on:click={() => t.webhookHost && handleClearCache(t.webhookHost)}
 										>CLEAR CACHE
 									</Button>
 								</li>
@@ -393,8 +394,8 @@
 								<li>Upstream task ID: {t.upstreamTaskId}</li>
 								<li>Webhook Host: {t.webhookHost}</li>
 								<li>Auto run: {t.autoRun}</li>
-								<li>Executed at: {localeDate(t.executedAt)}</li>
-								<li>Stopped at: {localeDate(t.stoppedAt)}</li>
+								<li>Executed at: {t.executedAt ? localeDate(String(t.executedAt)) : ''}</li>
+								<li>Stopped at: {t.stoppedAt ? localeDate(String(t.stoppedAt)) : ''}</li>
 								<li>Timeout: {t.timeout}</li>
 								<li>
 									Remarks:
@@ -414,7 +415,7 @@
 		</svelte:fragment>
 	</DataTable>
 	<div class="btn-group">
-		<Button style="margin-top: 20px;" on:click={(e) => handleOpenPipelineModal(e)}
+		<Button style="margin-top: 20px;" on:click={() => handleOpenPipelineModal()}
 			>Add Pipeline</Button
 		>
 	</div>

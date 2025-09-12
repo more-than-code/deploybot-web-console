@@ -3,7 +3,7 @@ import type { LayoutServerLoad } from './$types';
 
 export const load = (({ cookies, url }) => {
 	if (!cookies.get('accessToken')) {
-		if (url.pathname === "/") {
+		if (url.pathname === '/') {
 			return;
 		}
 

@@ -1,69 +1,69 @@
 export type ParamsType = {
-  [k: string]: string
-}
+	[k: string]: string;
+};
 
 export function SubmitViaForm(action: string, method: string, params: ParamsType) {
-  const form = document.createElement('form')
-  form.method = method
-  form.action = action
+	const form = document.createElement('form');
+	form.method = method;
+	form.action = action;
 
-  for (const key in params) {
-    if (params.hasOwnProperty(key)) {
-      const hiddenField = document.createElement('input')
-      hiddenField.type = 'hidden'
-      hiddenField.name = key
-      hiddenField.value = params[key]
+	for (const key in params) {
+		if (Object.prototype.hasOwnProperty.call(params, key)) {
+			const hiddenField = document.createElement('input');
+			hiddenField.type = 'hidden';
+			hiddenField.name = key;
+			hiddenField.value = params[key];
 
-      form.appendChild(hiddenField)
-    }
-  }
+			form.appendChild(hiddenField);
+		}
+	}
 
-  document.body.appendChild(form)
-  form.submit()
+	document.body.appendChild(form);
+	form.submit();
 }
 
-export function obj2Arr(obj: any): string[] {
-  if (!obj || obj === '') return []
+export function obj2Arr(obj: Record<string, unknown>): string[] {
+	if (!obj) return [];
 
-  return Object.keys(obj).map(key => `${key}=${obj[key]}`)
+	return Object.keys(obj).map((key) => `${key}=${obj[key]}`);
 }
 
-export function arr2Obj(arr: string[]): object {
-  if (!arr || arr.length === 0) return {}
+export function arr2Obj(arr: string[]): Record<string, string> {
+	if (!arr || arr.length === 0) return {};
 
-  const obj: any = {}
+	const obj: Record<string, string> = {};
 
-  arr.forEach(item => {
-    const [key, value] = item.split('=')
-    obj[key] = value
-  })
+	arr.forEach((item) => {
+		const [key, value] = item.split('=');
+		obj[key] = value;
+	});
 
-  return obj
+	return obj;
 }
 
-export function transformCamelCase<T>(data: T): T {
-  if (!data) return data
+export function transformCamelCase<T extends Record<string, unknown>>(data: T): T {
+	if (!data) return data;
 
-  for (const key in data) {
-    const value = data[key]
+	for (const key in data) {
+		const value = (data as Record<string, unknown>)[key];
 
-    if (isFirstLetterUpperCase(key)) {
-      const lowerKey = lowerFirstLetter(key)
-      data[lowerKey] = value
+		if (isFirstLetterUpperCase(key)) {
+			const lowerKey = lowerFirstLetter(key);
+			(data as Record<string, unknown>)[lowerKey] = value;
 
-      delete data[key]
-    }
-  }
+			delete (data as Record<string, unknown>)[key];
+		}
+	}
 
-  return data
+	return data;
 }
 
 function lowerFirstLetter(str: string): string {
-  return str.charAt(0).toLowerCase() + str.slice(1)
+	return str.charAt(0).toLowerCase() + str.slice(1);
 }
 
 function isFirstLetterUpperCase(str: string): boolean {
-  const firstLetter = str.charAt(0)
+	const firstLetter = str.charAt(0);
 
-  return firstLetter === firstLetter.toUpperCase()
+	return firstLetter === firstLetter.toUpperCase();
 }

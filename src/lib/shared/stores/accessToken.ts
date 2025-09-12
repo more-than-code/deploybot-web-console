@@ -3,7 +3,9 @@ import { writable } from 'svelte/store';
 
 const defaultValue = '';
 
-const initialValue = browser ? window.localStorage.getItem('accessToken') ?? defaultValue : defaultValue;
+const initialValue = browser
+	? (window.localStorage.getItem('accessToken') ?? defaultValue)
+	: defaultValue;
 
 const accessToken = writable<string>(initialValue);
 
@@ -13,4 +15,4 @@ accessToken.subscribe((value) => {
 	}
 });
 
-export default accessToken
+export default accessToken;

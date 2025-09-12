@@ -11,13 +11,13 @@
 		config.args = new CustomMap<string, string>(configArgsList.map(([key, value]) => [key, value]));
 	}
 
-	function handleAddArg() {
+	const handleAddArg = () => {
 		configArgsList = [...configArgsList, ['', '']];
-	}
+	};
 
-	function handleRemoveArg(elem: string[]) {
-		configArgsList = configArgsList.filter((configArgsList) => configArgsList[0] !== elem[0]);
-	}
+	const handleRemoveArg = (elem: string[]) => {
+		configArgsList = configArgsList.filter((entry) => entry[0] !== elem[0]);
+	};
 </script>
 
 <FormGroup legendText="Image Name">

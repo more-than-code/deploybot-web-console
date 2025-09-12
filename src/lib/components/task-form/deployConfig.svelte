@@ -42,55 +42,53 @@
 		config.restartPolicy = restartPolicy;
 	}
 
-	function handleAddEnv() {
+	const handleAddEnv = () => {
 		if (!config) return;
 
 		envList = [...envList, ''];
-	}
+	};
 
-	function handleRemoveEnv(i: number) {
+	const handleRemoveEnv = (i: number) => {
 		if (!config) return;
 
 		envList.splice(i, 1);
-		envList = envList;
-	}
+	};
 
-	function handleAddLink() {
+	const handleAddLink = () => {
 		if (!config) return;
 
 		linkList = [...linkList, ''];
-	}
+	};
 
-	function handleRemoveLink(i: number) {
+	const handleRemoveLink = (i: number) => {
 		if (!config) return;
 
 		linkList.splice(i, 1);
-		linkList = linkList;
-	}
+	};
 
-	function handleAddFile() {
+	const handleAddFile = () => {
 		fileList = [...fileList, ['', '']];
-	}
+	};
 
-	function handleRemoveFile(elem: string[]) {
+	const handleRemoveFile = (elem: string[]) => {
 		fileList = fileList.filter((file) => file[0] !== elem[0]);
-	}
+	};
 
-	function handleAddVolumeMount() {
+	const handleAddVolumeMount = () => {
 		volumeMountList = [...volumeMountList, ['', '']];
-	}
+	};
 
-	function handleRemoveVolumeMount(elem: string[]) {
+	const handleRemoveVolumeMount = (elem: string[]) => {
 		volumeMountList = volumeMountList.filter((volumeMount) => volumeMount[0] !== elem[0]);
-	}
+	};
 
-	function handleAddPort() {
+	const handleAddPort = () => {
 		portList = [...portList, ['', '']];
-	}
+	};
 
-	function handleRemovePort(elem: string[]) {
+	const handleRemovePort = (elem: string[]) => {
 		portList = portList.filter((port) => port[0] !== elem[0]);
-	}
+	};
 </script>
 
 <FormGroup legendText="Image Name">

@@ -1,6 +1,6 @@
-import { type Cookies, fail, redirect } from '@sveltejs/kit'
-import type { AuthenticationResponse } from 'models/user'
-import type { Actions } from './$types'
+import { type Cookies, fail, redirect } from '@sveltejs/kit';
+import type { AuthenticationResponse } from 'models/user';
+import type { Actions } from './$types';
 
 function setCookies(cookies: Cookies, accessToken: string) {
 	cookies.set('accessToken', accessToken, {
@@ -16,7 +16,6 @@ function setCookies(cookies: Cookies, accessToken: string) {
 		// set cookie to expire after a month
 		maxAge: 60 * 60 * 24 * 30
 	});
-
 }
 
 export const actions = {
@@ -46,7 +45,7 @@ export const actions = {
 		const authRes: AuthenticationResponse = await res.json();
 
 		if (authRes.code === 0 && authRes.payload) {
-			setCookies(cookies, authRes.payload.accessToken)
+			setCookies(cookies, authRes.payload.accessToken);
 			throw redirect(302, '/projects');
 		}
 	},
@@ -70,7 +69,7 @@ export const actions = {
 		const authRes: AuthenticationResponse = await res.json();
 
 		if (authRes.code === 0 && authRes.payload) {
-			setCookies(cookies, authRes.payload.accessToken)
+			setCookies(cookies, authRes.payload.accessToken);
 
 			throw redirect(302, '/projects');
 		}
