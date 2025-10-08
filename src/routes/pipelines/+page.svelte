@@ -1,8 +1,6 @@
 <script lang="ts">
-	import type { PageData } from './$types';
-	import type { DiskInfo, Pipeline, Task } from 'models/pipeline';
-	import type { TaskDeleteReq, TaskModalReq } from 'models/task';
 	import { invalidateAll } from '$app/navigation';
+	import TaskFormModal from '$lib/components/task-form/page.svelte';
 	import {
 		Button,
 		DataTable,
@@ -14,13 +12,15 @@
 		TextInput
 	} from 'carbon-components-svelte';
 	import type { DataTableRow } from 'carbon-components-svelte/types/DataTable/DataTable.svelte';
-	import TaskFormModal from '$lib/components/task-form/page.svelte';
 	import dayjs from 'dayjs';
 	import utc from 'dayjs/plugin/utc';
+	import type { DiskInfo, Pipeline, Task } from 'models/pipeline';
+	import type { TaskDeleteReq, TaskModalReq } from 'models/task';
 	import type { ItemResponse } from '../../models/response';
+	import type { PageData } from './$types';
 
-	import type { Project, Server } from 'models/projects';
 	import { CustomMap } from '$lib/types/customMap';
+	import type { Project, Server } from 'models/projects';
 	import { onMount } from 'svelte';
 
 	dayjs.extend(utc);
@@ -28,6 +28,7 @@
 	export let data: PageData;
 	let deployServers: Server[] = [];
 	let buildServers: Server[] = [];
+	let projectName: string = '';
 
 	$: pipelines = data.pipelines ?? [];
 
@@ -56,6 +57,7 @@
 			return value;
 		});
 
+		projectName = prjRes.payload.name;
 		deployServers = prjRes.payload.deployServers;
 		buildServers = prjRes.payload.buildServers;
 	});
@@ -251,7 +253,7 @@
 </script>
 
 <div class="pipeline-wrapper">
-	<h1>Pipelines</h1>
+	<h1>Pipelines × {projectName}</h1>
 	<Grid />
 	<DataTable
 		batchExpansion
